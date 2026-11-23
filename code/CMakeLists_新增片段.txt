@@ -1,0 +1,5 @@
+# 插入位置：src/application/samples/peripheral/CMakeLists.txt
+# 放在 set(SOURCES "${SOURCES}" PARENT_SCOPE) 之前
+if(DEFINED CONFIG_SAMPLE_SUPPORT_BEEP)
+    add_subdirectory_if_exist(beep)
+endif()

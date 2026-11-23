@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实训六 · 蜂鸣器案例 | 星闪 WS63E 交互实验室</title>
+<style>
+:root{
+  --bg:#060a12; --bg2:#0a1020; --panel:#0e1729; --panel2:#131f36; --panel3:#182743;
+  --line:#213253; --line2:#2c4066; --text:#e9effb; --muted:#93a7c9; --dim:#6c7f9f;
+  --accent:#4da3ff; --accent2:#38d6a4; --warn:#ffcf5c; --err:#ff7186; --ok:#46d17f;
+  --mono:Consolas,"Cascadia Code","SFMono-Regular",Menlo,monospace;
+  --sans:"Segoe UI","Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
+  --shadow:0 18px 50px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:var(--sans); color:var(--text);
+  background:
+    radial-gradient(1100px 620px at 12% -10%, rgba(30,82,150,.34), transparent 60%),
+    radial-gradient(900px 520px at 95% 0%, rgba(20,120,100,.18), transparent 55%),
+    linear-gradient(180deg,var(--bg),var(--bg2));
+  min-height:100vh;
+}
+button,input,select,textarea{font-family:inherit}
+a{color:var(--accent)}
+::selection{background:rgba(77,163,255,.35)}
+.app{max-width:1620px;margin:0 auto;padding:18px 20px 30px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.logo{
+  width:52px;height:52px;border-radius:16px;display:grid;place-items:center;flex:0 0 auto;
+  font:800 14px/1 var(--mono);letter-spacing:.5px;color:#04101f;
+  background:linear-gradient(135deg,#7cc8ff,#38d6a4 70%);
+  box-shadow:0 10px 30px rgba(56,214,164,.25);
+}
+.brand h1{font-size:22px;line-height:1.15;margin:0 0 4px;letter-spacing:.2px}
+.brand p{margin:0;color:var(--muted);font-size:12.5px}
+.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.progress{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px}
+.progress .bar{width:130px;height:7px;border-radius:99px;background:#0a1425;border:1px solid var(--line);overflow:hidden}
+.progress .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s ease}
+.btn{
+  border:1px solid var(--line2); background:#101b30; color:var(--text);
+  padding:9px 14px;border-radius:11px;cursor:pointer;font-size:13.5px;line-height:1;
+  transition:transform .12s ease,border-color .12s ease,background .12s ease,box-shadow .12s ease;
+  display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.btn:hover{border-color:#3a5c90;background:#14233c;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.primary{border-color:transparent;background:linear-gradient(135deg,#4da3ff,#2f7fe0);color:#04101f;font-weight:800;box-shadow:0 10px 24px rgba(77,163,255,.24)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.green{border-color:transparent;background:linear-gradient(135deg,#43db9f,#27b47b);color:#04130c;font-weight:800}
+.btn.danger{border-color:#5a2a3a;background:#2a1420;color:#ffb3c3}
+.btn.ghost{background:transparent}
+.btn.small{padding:7px 10px;font-size:12.5px;border-radius:9px}
+.btn.big{padding:14px 22px;font-size:16px;border-radius:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.layout{display:grid;grid-template-columns:238px minmax(0,1fr) 318px;gap:16px;align-items:start}
+.card{
+  background:linear-gradient(180deg,rgba(19,31,54,.92),rgba(12,21,38,.94));
+  border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+}
+.steps-card{padding:14px;position:sticky;top:16px}
+.steps-card h2{font-size:12px;letter-spacing:.16em;color:var(--dim);margin:2px 0 12px;text-transform:uppercase}
+#stepList{display:flex;flex-direction:column;gap:6px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:.15s}
+.step:hover{background:rgba(77,163,255,.06)}
+.step.active{background:linear-gradient(135deg,rgba(77,163,255,.16),rgba(56,214,164,.08));border-color:rgba(77,163,255,.45)}
+.step.locked{opacity:.52;cursor:not-allowed}
+.step .num{
+  width:26px;height:26px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;
+  font:700 12px/1 var(--mono);background:#0b1526;border:1px solid var(--line2);color:var(--muted)
+}
+.step.active .num{background:var(--accent);border-color:var(--accent);color:#04101f}
+.step.done .num{background:var(--ok);border-color:var(--ok);color:#04140a}
+.step .txt{min-width:0}
+.step .t{font-size:13.5px;font-weight:700;line-height:1.25}
+.step .d{font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.35}
+.steps-foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;color:var(--dim);line-height:1.55}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.stage-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;padding:2px 4px}
+.eyebrow{font:700 11px/1 var(--mono);letter-spacing:.18em;color:var(--accent);text-transform:uppercase;margin-bottom:7px}
+.stage-head h2{margin:0;font-size:26px;line-height:1.2;letter-spacing:.2px}
+.badges{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.badge{font-size:11px;padding:5px 9px;border-radius:99px;border:1px solid var(--line2);color:var(--muted);background:#0b1526;white-space:nowrap}
+.badge.ok{border-color:rgba(70,209,127,.4);color:#8ef0b4;background:rgba(70,209,127,.08)}
+.badge.warn{border-color:rgba(255,207,92,.35);color:#ffe4a0;background:rgba(255,207,92,.07)}
+.badge.blue{border-color:rgba(77,163,255,.35);color:#b7d8ff;background:rgba(77,163,255,.08)}
+#stageBody{display:flex;flex-direction:column;gap:14px;min-width:0}
+.hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:18px;padding:26px;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;inset:-30% -10% auto auto;width:520px;height:520px;background:radial-gradient(circle,rgba(56,214,164,.18),transparent 62%);pointer-events:none}
+.hero h2{font-size:34px;line-height:1.15;margin:12px 0 10px;letter-spacing:.2px}
+.hero p{color:var(--muted);line-height:1.75;font-size:14px;margin:0 0 16px;max-width:56ch}
+.pill{display:inline-flex;align-items:center;gap:7px;font:700 11px/1 var(--mono);letter-spacing:.1em;color:#a9e8ff;background:rgba(77,163,255,.1);border:1px solid rgba(77,163,255,.28);padding:7px 10px;border-radius:99px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 14px}
+.mini-stats{display:flex;gap:18px;flex-wrap:wrap;color:var(--dim);font-size:12px}
+.mini-stats b{display:block;color:var(--text);font:800 16px/1.2 var(--mono);margin-bottom:3px}
+.hero-board{display:grid;place-items:center;min-width:0}
+.board-svg{width:100%;height:auto;max-height:330px;filter:drop-shadow(0 18px 30px rgba(0,0,0,.35))}
+.board-svg .wave{opacity:0;transform-origin:355px 210px}
+.board-svg.playing .wave{animation:pulseWave 1s ease-out infinite}
+.board-svg.playing .w2{animation-delay:.18s}
+.board-svg.playing .w3{animation-delay:.36s}
+@keyframes pulseWave{0%{opacity:.65;transform:scale(.55)}100%{opacity:0;transform:scale(1.35)}}
+.board-svg .led-red{animation:ledBlink 1.4s infinite}
+.board-svg .led-yellow{animation:ledBlink 1.4s .25s infinite}
+.board-svg .led-green{animation:ledBlink 1.4s .5s infinite}
+@keyframes ledBlink{0%,42%{opacity:.25}50%,92%{opacity:1}100%{opacity:.25}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.panel{padding:18px;border-radius:16px;border:1px solid var(--line);background:rgba(10,18,33,.7)}
+.panel h3{margin:0 0 8px;font-size:15px}
+.panel p{margin:0;color:var(--muted);font-size:13px;line-height:1.65}
+.panel .k{font:800 22px/1.1 var(--mono);color:var(--accent2);margin:8px 0 4px}
+.panel ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.7}
+.ref{border:1px dashed var(--line2);border-radius:14px;background:rgba(8,15,28,.55);overflow:hidden}
+.ref summary{cursor:pointer;padding:12px 14px;font-size:12.5px;color:var(--muted);list-style:none}
+.ref summary::-webkit-details-marker{display:none}
+.ref summary:before{content:"▸";display:inline-block;margin-right:8px;color:var(--accent);transition:.2s}
+.ref[open] summary:before{transform:rotate(90deg)}
+.ref img{display:block;width:100%;height:auto;border-top:1px solid var(--line)}
+.ref .cap{padding:8px 14px 11px;color:var(--dim);font-size:11.5px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tree{font:12.5px/1.9 var(--mono);color:var(--muted);background:#081120;border:1px solid var(--line);border-radius:12px;padding:12px;min-height:230px;overflow:auto}
+.tree .row{display:flex;align-items:center;gap:6px;white-space:nowrap;padding:1px 4px;border-radius:6px}
+.tree .row:hover{background:rgba(77,163,255,.07)}
+.tree .row.target{outline:1px dashed rgba(77,163,255,.45);background:rgba(77,163,255,.08)}
+.tree .row.new{color:var(--accent2)}
+.tree .row .ico{width:15px;display:inline-block;text-align:center;color:var(--dim)}
+.tree .row .tag{margin-left:auto;font:10px/1 var(--sans);color:#062014;background:var(--accent2);padding:3px 6px;border-radius:5px;font-weight:800}
+.filelist{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.file{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#0a1425;font:12.5px/1.2 var(--mono);color:var(--muted)}
+.file .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.file.ok .dot{background:var(--ok)}
+.file.ok{color:var(--text);border-color:rgba(70,209,127,.35)}
+.file .size{margin-left:auto;color:var(--dim);font-size:10.5px}
+.actionbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.status{font-size:12px;color:var(--dim);margin-left:auto}
+.status.ok{color:#8ef0b4}
+.status.warn{color:#ffe4a0}
+.editor-shell{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#07101d}
+.editor-top{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#0b1628;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{border:1px solid transparent;background:transparent;color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer;font:12.5px/1 var(--mono)}
+.tab.active{background:#12233e;border-color:var(--line2);color:var(--text)}
+.tab .dirty{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:1px}
+.editor{display:grid;grid-template-columns:48px 1fr;height:360px;min-height:160px}
+.editor.small{height:210px}
+.editor .gutter{overflow:hidden;background:#091425;border-right:1px solid var(--line);color:#455c82;font:12.5px/1.6 var(--mono);padding:12px 8px 12px 0;text-align:right;user-select:none;white-space:pre}
+.editor .codearea{position:relative;overflow:hidden}
+.editor textarea{
+  position:absolute;inset:0;width:100%;height:100%;resize:none;border:0;outline:none;
+  background:#07101d;color:#d9e6fa;font:12.5px/1.6 var(--mono);
+  padding:12px 14px;tab-size:4;white-space:pre;overflow:auto;caret-color:#7cc8ff;
+}
+.editor textarea:focus{box-shadow:inset 0 0 0 1px rgba(77,163,255,.35)}
+.editor .errline{position:absolute;left:0;right:0;height:20px;background:rgba(255,113,134,.13);pointer-events:none;display:none}
+.codebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:9px 12px;border-top:1px solid var(--line);background:#0a1526}
+.codebar .note{color:var(--dim);font-size:11.5px;line-height:1.4}
+pre.code{white-space:pre;overflow:auto;background:#07101d;border:1px solid var(--line);border-radius:12px;padding:14px;font:12px/1.65 var(--mono);color:#cfe0f8;margin:10px 0 0;max-height:300px}
+pre.code .c{color:#6e89ad}
+pre.code .k{color:#7cc8ff}
+pre.code .s{color:#a5e8b7}
+pre.code .n{color:#ffcf8a}
+.console-card{border:1px solid var(--line);border-radius:16px;background:#050a13;overflow:hidden}
+.console-head{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#0a1424;border-bottom:1px solid var(--line);font-size:11.5px;color:var(--dim)}
+.console-head .dots{display:flex;gap:5px}
+.console-head .dots i{width:8px;height:8px;border-radius:50%;background:#33445f;display:block}
+.console-head .dots i:nth-child(1){background:#ff7186}
+.console-head .dots i:nth-child(2){background:#ffcf5c}
+.console-head .dots i:nth-child(3){background:#46d17f}
+.console-head .live{margin-left:auto;color:var(--accent2);font-family:var(--mono);font-size:10.5px}
+pre#console{margin:0;padding:12px 14px;min-height:120px;max-height:230px;overflow:auto;font:11.8px/1.65 var(--mono);color:#a9bdd9;white-space:pre-wrap}
+.log-line{display:block}
+.log-line.cmd{color:#7cc8ff}
+.log-line.ok{color:#8ef0b4}
+.log-line.err{color:#ff9dab}
+.log-line.warn{color:#ffe4a0}
+.log-line.dim{color:#5e7396}
+.side{display:flex;flex-direction:column;gap:14px;position:sticky;top:16px}
+.side .card{padding:16px}
+.side h3{margin:0 0 9px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.side p{margin:0 0 10px;color:var(--muted);font-size:13px;line-height:1.65}
+.side ul{margin:8px 0 0;padding-left:17px;color:var(--muted);font-size:12.5px;line-height:1.7}
+.check{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:12.5px;color:var(--muted);line-height:1.45}
+.check .box{width:16px;height:16px;border:1px solid var(--line2);border-radius:5px;display:grid;place-items:center;flex:0 0 auto;font-size:11px;color:transparent;background:#0a1425}
+.check.done{color:var(--text)}
+.check.done .box{background:var(--ok);border-color:var(--ok);color:#04140a}
+.kcard{border-color:rgba(77,163,255,.22);background:linear-gradient(180deg,rgba(77,163,255,.08),rgba(12,21,38,.94))}
+.kcard .big{font:800 26px/1.15 var(--mono);color:#a9e8ff;margin:6px 0}
+.kcard .small{font-size:11.5px;color:var(--dim);line-height:1.6}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,207,92,.3);background:rgba(255,207,92,.07);color:#ffe4a0;font-size:12.5px;line-height:1.6}
+.alert.info{border-color:rgba(77,163,255,.3);background:rgba(77,163,255,.07);color:#b7d8ff}
+.alert.ok{border-color:rgba(70,209,127,.35);background:rgba(70,209,127,.07);color:#a5f0c2}
+.alert.err{border-color:rgba(255,113,134,.35);background:rgba(255,113,134,.07);color:#ffb3c0}
+.alert b{color:inherit}
+.modal-back{position:fixed;inset:0;background:rgba(3,7,14,.74);backdrop-filter:blur(7px);display:grid;place-items:center;padding:18px;z-index:60}
+.modal{width:min(860px,100%);max-height:92vh;overflow:auto;background:linear-gradient(180deg,#101b30,#0a1324);border:1px solid var(--line2);border-radius:20px;box-shadow:0 30px 90px rgba(0,0,0,.55);padding:20px}
+.modal h3{margin:0 0 6px;font-size:19px}
+.modal .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.modal-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+.field{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.field label{font-size:12.5px;color:var(--muted)}
+.field input,.field select{border:1px solid var(--line2);background:#07101d;color:var(--text);border-radius:10px;padding:10px 12px;font-size:13.5px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.kconfig-ui{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}
+.kconfig-tree{border:1px solid var(--line);border-radius:12px;background:#07101d;padding:10px;font:12.5px/1.6 var(--mono);color:var(--muted);max-height:330px;overflow:auto}
+.krow{display:flex;gap:8px;align-items:center;padding:5px 6px;border-radius:7px;cursor:pointer}
+.krow:hover{background:rgba(77,163,255,.07)}
+.krow input{accent-color:var(--accent)}
+.krow .lbl{white-space:nowrap}
+.krow .sub{color:var(--dim);font-size:11px;margin-left:auto}
+.kconfig-desc{border:1px solid var(--line);border-radius:12px;background:#081120;padding:12px;font-size:12px;color:var(--muted);line-height:1.7;max-height:330px;overflow:auto}
+.kconfig-desc b{color:var(--text)}
+.modal .ref{margin-top:12px}
+.modal .ref img{max-height:300px;object-fit:contain;background:#050a13}
+.toast-root{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:9px;z-index:80;max-width:min(360px,90vw)}
+.toast{padding:11px 13px;border-radius:12px;background:#112039;border:1px solid var(--line2);color:var(--text);font-size:12.5px;box-shadow:var(--shadow);animation:toastIn .18s ease}
+.toast.ok{border-color:rgba(70,209,127,.45)}
+.toast.err{border-color:rgba(255,113,134,.45)}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.lockcard{padding:34px 24px;text-align:center}
+.lockcard .big{font-size:44px;margin-bottom:8px}
+.lockcard h3{font-size:20px;margin:0 0 8px}
+.lockcard p{color:var(--muted);font-size:13.5px;line-height:1.7;margin:0 auto 16px;max-width:56ch}
+.buzzer-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.slider{margin:14px 0}
+.slider label{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted);margin-bottom:7px}
+.slider label b{color:var(--text);font-family:var(--mono)}
+input[type=range]{width:100%;accent-color:var(--accent);height:5px}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.readout .r{border:1px solid var(--line);border-radius:11px;background:#081120;padding:10px 12px}
+.readout .r span{display:block;color:var(--dim);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.readout .r b{font:800 18px/1 var(--mono);color:var(--accent2)}
+canvas#scope{width:100%;height:170px;display:block;border:1px solid var(--line);border-radius:12px;background:#050b15;margin-top:12px}
+.footer{margin-top:18px;color:var(--dim);font-size:11.5px;line-height:1.6;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:0 4px}
+.print-only{display:none}
+#selftestOut{display:none;white-space:pre-wrap;background:#07101d;border:1px solid var(--line2);border-radius:12px;padding:14px;font:12px/1.6 var(--mono);color:#a9e8ff;margin-top:12px}
+body.selftest #selftestOut{display:block}
+body.preview .preview-flag{display:inline-flex}
+.preview-flag{display:none}
+@media (max-width:1240px){
+  .layout{grid-template-columns:210px minmax(0,1fr)}
+  .side{grid-column:1/-1;position:static;display:grid;grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:980px){
+  .layout{grid-template-columns:1fr}
+  .steps-card{position:static}
+  #stepList{display:grid;grid-template-columns:repeat(2,1fr)}
+  .side{grid-template-columns:1fr}
+  .hero{grid-template-columns:1fr;padding:20px}
+  .hero h2{font-size:27px}
+  .two-col,.grid2,.grid3,.buzzer-controls,.kconfig-ui{grid-template-columns:1fr}
+  .stage-head h2{font-size:21px}
+  .editor{height:330px}
+}
+@media (max-width:620px){
+  .app{padding:12px}
+  .topbar{align-items:flex-start;flex-direction:column}
+  .top-actions{justify-content:flex-start}
+  #stepList{grid-template-columns:1fr}
+  .brand h1{font-size:18px}
+  .stage-head{flex-direction:column;align-items:flex-start}
+  .stage-head h2{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+@media print{
+  body{background:#fff;color:#111}
+  .topbar,.steps-card,.side,.console-card,.footer,.btn{display:none!important}
+  .layout{display:block}
+  .card,.panel,.modal{border-color:#bbb;box-shadow:none;background:#fff;color:#111}
+  .print-only{display:block}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">WS63</div>
+      <div>
+        <h1>实训六 · 蜂鸣器案例</h1>
+        <p>HiHope_NearLink_DK_WS63E · PWM 驱动 · 交互式实训实验室</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="progress"><span id="progressText">0%</span><div class="bar"><i id="progressBar"></i></div></div>
+      <button class="btn ghost small" id="btnHelp">使用说明</button>
+      <button class="btn ghost small" id="btnReset">重置</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="card steps-card">
+      <h2>任务地图</h2>
+      <div id="stepList"></div>
+      <div class="steps-foot">
+        目标：让 GPIO9 输出约 1 kHz 的 PWM，驱动交通灯板上的 BEEP 鸣响。<br>
+        本页可离线运行；编译为教学模拟，真实构建以 HiSpark Studio 为准。
+      </div>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-head">
+        <div>
+          <div class="eyebrow" id="stageEyebrow">STEP 00</div>
+          <h2 id="stageTitle">准备</h2>
+        </div>
+        <div class="badges" id="stageBadges"></div>
+      </div>
+      <div id="stageBody"></div>
+      <section class="console-card">
+        <div class="console-head">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <span>模拟终端 · WS63E / ws63-liteos-app</span>
+          <span class="live" id="consoleLive">READY</span>
+        </div>
+        <pre id="console"></pre>
+      </section>
+    </main>
+
+    <aside class="side">
+      <div class="card" id="taskCard"></div>
+      <div class="card kcard" id="knowledgeCard"></div>
+      <div class="card" id="checklistCard"></div>
+    </aside>
+  </div>
+
+  <footer class="footer">
+    <span>重庆建筑科技职业学院 · 数字工程学院 · 物联网专贯本2班 · 2026</span>
+    <span>本页不连接真实开发板；虚拟蜂鸣器经扬声器发声。实物烧录见实训报告。</span>
+  </footer>
+</div>
+<div id="modalRoot"></div>
+<div class="toast-root" id="toastRoot"></div>
+<pre id="selftestOut"></pre>
+
+<script>
+/* ============================================================
+   数据：由 tools/build_web.py 注入真实样例代码与截图
+   ============================================================ */
+const C_CODE = {{C_CODE_JSON}};
+const CMAKE_TEMPLATE = {{CMAKE_TEMPLATE_JSON}};
+const KCONFIG_TEMPLATE = {{KCONFIG_TEMPLATE_JSON}};
+const IMAGES = {
+  hardware: "{{IMG_HARDWARE}}",
+  new_folder: "{{IMG_NEW_FOLDER}}",
+  copy_sample: "{{IMG_COPY_SAMPLE}}",
+  cmake: "{{IMG_CMAKE}}",
+  kconfig: "{{IMG_KCONFIG}}",
+  menuconfig: "{{IMG_MENUCONFIG}}",
+  support_beep: "{{IMG_SUPPORT_BEEP}}",
+  build_success: "{{IMG_BUILD_SUCCESS}}",
+  project_config: "{{IMG_PROJECT_CONFIG}}",
+  flash_start: "{{IMG_FLASH_START}}",
+  flash_connecting: "{{IMG_FLASH_CONNECTING}}",
+  board_usb: "{{IMG_BOARD_USB}}"
+};
+
+const CMAKE_ANSWER = `if(DEFINED CONFIG_SAMPLE_SUPPORT_BEEP)
+    add_subdirectory_if_exist(beep)
+endif()
+
+set(SOURCES "\${SOURCES}" PARENT_SCOPE)`;
+
+const KCONFIG_ANSWER = `config SAMPLE_SUPPORT_BEEP
+    bool
+    prompt "Support BEEP Sample."
+    default n
+    depends on ENABLE_PERIPHERAL_SAMPLE
+    help
+        This option means support BEEP Sample.`;
+
+const STEPS = [
+  {id:0, title:"准备", short:"认识板子与 PWM", eyebrow:"STEP 00",
+   task:"先看清硬件链路：交通灯板的 BEEP 接底板 A9，A9 对应核心板 GPIO9。",
+   ops:["看一遍接线图","知道 PWM 频率与占空比","点“开始实训”"],
+   know:{t:"PWM 是什么", d:"PWM 通过快速切换高低电平来输出方波。一个周期里高电平所占的百分比叫占空比；周期决定频率。", big:"f = 32 MHz / (low + high)", small:"low=20000、high=10000 → 约 1066.7 Hz、占空比 33.3%"},
+   checks:["知道 BEEP 对应 GPIO9","知道 PWM 由高低电平计数决定","准备好开始"]},
+  {id:1, title:"新建 beep", short:"在 peripheral 下建文件夹", eyebrow:"STEP 01",
+   task:"在 src/application/samples/peripheral 下新建 beep 文件夹，作为本次实训的样例目录。",
+   ops:["在 peripheral 上右键","选择“新建文件夹”","输入 beep 并确认"],
+   know:{t:"为什么要新建目录", d:"SDK 的每个样例都放在 samples/peripheral 下，构建系统通过目录名找到源码。", big:"beep/", small:"目录里随后会放入 pwm_example.c、CMakeLists.txt、README.md"},
+   checks:["父目录是 peripheral","文件夹名是 beep","没有拼写错误"]},
+  {id:2, title:"复制样例", short:"把 vendor 样例搬进来", eyebrow:"STEP 02",
+   task:"把 vendor 里现成的 beep 样例复制到刚建的 beep 目录。指导书路径少了 demo，实际在 demo\\beep。",
+   ops:["打开 vendor/.../demo/beep","复制 3 个文件","粘贴到 samples/peripheral/beep"],
+   know:{t:"样例里有什么", d:"pwm_example.c 是 PWM 初始化与启动逻辑；CMakeLists.txt 把源码加入构建；README.md 是说明。", big:"demo\\beep", small:"PDF 写的是 vendor\\...\\beep，实际 SDK 多一层 demo"},
+   checks:["pwm_example.c 到位","CMakeLists.txt 到位","README.md 到位"]},
+  {id:3, title:"写 CMake", short:"注册 BEEP 编译案例", eyebrow:"STEP 03",
+   task:"在 peripheral/CMakeLists.txt 的 set(SOURCES ...) 之前，注册 BEEP 子目录。",
+   ops:["找到 set(SOURCES ...)","在它前面写 if 块","点“提交代码”"],
+   know:{t:"CMake 的作用", d:"CMakeLists.txt 决定哪些子目录参与编译。没有注册，beep 目录里的代码不会被编译进固件。", big:"add_subdirectory_if_exist(beep)", small:"只有 CONFIG_SAMPLE_SUPPORT_BEEP 被定义时才加入"},
+   checks:["if(DEFINED CONFIG_SAMPLE_SUPPORT_BEEP)","add_subdirectory_if_exist(beep)","endif() 且在 set 之前"]},
+  {id:4, title:"写 Kconfig", short:"新增 BEEP 配置项", eyebrow:"STEP 04",
+   task:"在 peripheral/Kconfig 末尾新增 SAMPLE_SUPPORT_BEEP，让系统配置里出现“Support BEEP Sample.”。",
+   ops:["打开 peripheral/Kconfig","在末尾追加 config 块","点“提交代码”"],
+   know:{t:"Kconfig 的作用", d:"Kconfig 定义配置项，menuconfig 读取它生成 .config。CMake 再根据 .config 里的符号决定是否编译。", big:"config SAMPLE_SUPPORT_BEEP", small:"prompt 决定菜单里显示的文字"},
+   checks:["config SAMPLE_SUPPORT_BEEP","prompt 文字正确","depends on ENABLE_PERIPHERAL_SAMPLE"]},
+  {id:5, title:"menuconfig", short:"在系统配置里勾选 BEEP", eyebrow:"STEP 05",
+   task:"打开系统配置，按路径找到 BEEP 并勾选，保存后生成 CONFIG_SAMPLE_SUPPORT_BEEP=y。",
+   ops:["点“系统配置 / Kconfig”","展开 Enable the Sample of peripheral","勾选 Support BEEP Sample. 并 Save"],
+   know:{t:"为什么要 menuconfig", d:"menuconfig 把 Kconfig 里的选项变成可勾选的界面，并把结果写进 ws63_liteos_app.config。", big:"CONFIG_SAMPLE_SUPPORT_BEEP=y", small:"这一步决定 CMake 里的 if 是否成立"},
+   checks:["勾选 Support BEEP Sample.","点 Save","配置预览出现 =y"]},
+  {id:6, title:"编译", short:"提交代码并通过编译", eyebrow:"STEP 06",
+   task:"检查 pwm_example.c 的关键参数，提交代码并编译。只有编译通过，才能进入烧录。",
+   ops:["检查 PWM_CHANNEL / GPIO9","提交代码","点“编译”等待 SUCCESS"],
+   know:{t:"代码里的关键参数", d:"低电平 20000、高电平 10000 个 32 MHz 计数，合计 30000 → 约 1066.7 Hz；高电平占 1/3。", big:"SUCCESS", small:"真实构建产物：ws63-liteos-app_all.fwpkg"},
+   checks:["PWM_CHANNEL=1","CONFIG_PWM_PIN=9","uapi_pwm_start 已调用","编译 SUCCESS"]},
+  {id:7, title:"烧录", short:"程序加载到开发板", eyebrow:"STEP 07",
+   task:"用程序加载把固件烧进开发板：serial、COM5、115200；出现 Connecting 时按复位。",
+   ops:["选 serial 和 COM5","点“程序加载”","看到 Connecting 后按 RST"],
+   know:{t:"烧录为什么要复位", d:"芯片进入下载模式需要复位/上电时序。工具提示 Connecting 时按 RST，bootloader 才会接管串口。", big:"COM5 · 115200", small:"COM3 是蓝牙虚拟串口，别选；CH340K 实际是 COM5"},
+   checks:["传输方式 serial","端口 COM5（CH340K）","烧录进度 100%"]},
+  {id:8, title:"蜂鸣器", short:"听到声音并完成验收", eyebrow:"STEP 08",
+   task:"编译和烧录都完成后，虚拟蜂鸣器解锁。试听、看示波器，并对照实物板子的声音。",
+   ops:["点“鸣响 1 秒”","拖动频率/占空比试听","对照实物板子并完成验收"],
+   know:{t:"听到的是什么", d:"无源蜂鸣器由 PWM 方波驱动，频率决定音调，占空比影响音色/响度。板子上的 BEEP 通过 A9/GPIO9 接到 PWM。", big:"≈ 1066.7 Hz", small:"占空比 33.3%，持续约 1 秒"},
+   checks:["编译通过","烧录完成","听到蜂鸣器声音","完成验收"]}
+];
+
+const KEY = "ws63-beep-lab-v1";
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Number(n).toLocaleString("zh-CN");
+const clamp = (n,a,b) => Math.max(a, Math.min(b, n));
+
+function defaultState(){
+  return {
+    step:0, started:false, folder:false, copied:false,
+    cmake:CMAKE_TEMPLATE, kconfig:KCONFIG_TEMPLATE, ccode:C_CODE,
+    submitted:{cmake:false,kconfig:false,c:false},
+    menuconfig:false, compiled:false, flashed:false,
+    params:{low:20000, high:10000},
+    preview:{low:20000, high:10000},
+    port:"COM5", volume:0.08, tab:"c",
+    fails:{cmake:0,kconfig:0,c:0},
+    log:[], completed:false, errorLine:null, playing:false,
+    flashStage:"idle", flashProgress:0,
+    busy:false, previewMode:false
+  };
+}
+let state = loadState();
+let audioCtx = null, masterGain = null, activeOsc = null, activeGain = null;
+let playingTimer = null, scopeRAF = 0;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return defaultState();
+    const s = JSON.parse(raw);
+    const d = defaultState();
+    return {...d, ...s, submitted:{...d.submitted, ...(s.submitted||{})}, fails:{...d.fails, ...(s.fails||{})}, params:{...d.params, ...(s.params||{})}, preview:{...d.preview, ...(s.preview||{})}};
+  }catch(e){ return defaultState(); }
+}
+function save(){
+  if(state.previewMode || document.body.classList.contains("selftest")) return;
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+function log(msg, type="info"){
+  const t = new Date().toLocaleTimeString("zh-CN",{hour12:false});
+  state.log.push({t, msg, type});
+  if(state.log.length > 160) state.log = state.log.slice(-160);
+  renderConsole();
+  save();
+}
+function clearLog(){ state.log = []; renderConsole(); save(); }
+function renderConsole(){
+  const box = $("#console"); if(!box) return;
+  box.innerHTML = state.log.map(l => `<span class="log-line ${esc(l.type)}">[${esc(l.t)}] ${esc(l.msg)}</span>`).join("");
+  box.scrollTop = box.scrollHeight;
+}
+function toast(msg, type="info", ms=2600){
+  const root = $("#toastRoot");
+  const el = document.createElement("div");
+  el.className = "toast " + type;
+  el.textContent = msg;
+  root.appendChild(el);
+  setTimeout(()=>{ el.style.opacity="0"; el.style.transform="translateY(6px)"; setTimeout(()=>el.remove(),200); }, ms);
+}
+function modal(html){
+  const root = $("#modalRoot");
+  root.innerHTML = `<div class="modal-back" id="modalBack"><div class="modal">${html}</div></div>`;
+  $("#modalBack").addEventListener("click", e => { if(e.target.id === "modalBack") closeModal(); });
+}
+function closeModal(){ $("#modalRoot").innerHTML = ""; }
+
+/* ============================================================
+   状态机
+   ============================================================ */
+function maxStep(){
+  if(!state.started) return 0;
+  if(!state.folder) return 1;
+  if(!state.copied) return 2;
+  if(!state.submitted.cmake) return 3;
+  if(!state.submitted.kconfig) return 4;
+  if(!state.menuconfig) return 5;
+  if(!state.compiled) return 6;
+  if(!state.flashed) return 7;
+  return 8;
+}
+function canGo(n){
+  if(state.previewMode) return true;
+  return n <= maxStep() || n === state.step;
+}
+function go(n){
+  if(!canGo(n)){ toast("这一步还没解锁：先完成前面的任务。","err"); return; }
+  stopTone(true);
+  state.step = n;
+  state.errorLine = null;
+  save();
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function completedCount(){
+  let c = 0;
+  for(const s of [0,1,2,3,4,5,6,7,8]) if(isDone(s)) c++;
+  return c;
+}
+function isDone(n){
+  if(n === 0) return state.started;
+  if(n === 1) return state.folder;
+  if(n === 2) return state.copied;
+  if(n === 3) return state.submitted.cmake;
+  if(n === 4) return state.submitted.kconfig;
+  if(n === 5) return state.menuconfig;
+  if(n === 6) return state.compiled;
+  if(n === 7) return state.flashed;
+  if(n === 8) return state.completed;
+  return false;
+}
+function renderProgress(){
+  const p = Math.round((state.completed ? 8 : completedCount()) / 8 * 100);
+  $("#progressBar").style.width = p + "%";
+  $("#progressText").textContent = p + "%";
+}
+
+/* ============================================================
+   通用编辑器
+   ============================================================ */
+function editorHTML(id, value, small=false, readonly=false){
+  return `<div class="editor ${small?'small':''}">
+    <div class="gutter" id="gutter-${id}"></div>
+    <div class="codearea">
+      <div class="errline" id="errline-${id}"></div>
+      <textarea id="ed-${id}" spellcheck="false" ${readonly?'readonly':''}>${esc(value)}</textarea>
+    </div>
+  </div>`;
+}
+function bindEditor(id, onChange){
+  const ta = $("#ed-" + id); if(!ta) return;
+  const gutter = $("#gutter-" + id);
+  const sync = () => {
+    const lines = ta.value.split("\n").length;
+    gutter.textContent = Array.from({length:lines}, (_,i)=>i+1).join("\n");
+    gutter.scrollTop = ta.scrollTop;
+  };
+  ta.addEventListener("input", () => { sync(); onChange && onChange(ta.value); });
+  ta.addEventListener("scroll", () => { gutter.scrollTop = ta.scrollTop; });
+  sync();
+}
+function setErrorLine(id, line){
+  const ta = $("#ed-" + id); const box = $("#errline-" + id);
+  if(!ta || !box) return;
+  if(!line){ box.style.display = "none"; return; }
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  box.style.top = (12 + (line-1)*lh - ta.scrollTop) + "px";
+  box.style.display = "block";
+  ta.scrollTop = Math.max(0, (line-3)*lh);
+  ta.focus();
+}
+
+/* ============================================================
+   校验器
+   ============================================================ */
+function stripComments(code){
+  return code.replace(/\/\*[\s\S]*?\*\//g,"").replace(/\/\/[^\n]*/g,"");
+}
+function lineOf(code, idx){ return code.slice(0, idx).split("\n").length; }
+function posOf(code, token){ const i = code.indexOf(token); return i < 0 ? null : {index:i, line:lineOf(code,i)}; }
+function balanced(code){
+  const s = stripComments(code);
+  let a=0,b=0,c=0,d=0;
+  for(const ch of s){
+    if(ch === "{") a++; else if(ch === "}") a--;
+    else if(ch === "(") b++; else if(ch === ")") b--;
+    else if(ch === "[") c++; else if(ch === "]") c--;
+    if(a<0||b<0||c<0) return false;
+  }
+  return a===0 && b===0 && c===0;
+}
+function argCount(code, callName){
+  const i = code.indexOf(callName); if(i < 0) return -1;
+  const start = code.indexOf("(", i); if(start < 0) return -1;
+  let depth = 0, args = 1;
+  for(let j=start; j<code.length; j++){
+    const ch = code[j];
+    if(ch === "(") depth++;
+    else if(ch === ")"){ depth--; if(depth === 0) return args; }
+    else if(ch === "," && depth === 1) args++;
+  }
+  return -1;
+}
+function validateC(code){
+  const errs = [];
+  if(!balanced(code)) errs.push({file:"pwm_example.c", line:1, msg:"花括号/圆括号不匹配，请检查是否少了 } 或 )"});
+  const checks = [
+    ['#include "pwm.h"', '缺少 #include "pwm.h"'],
+    ['#include "pinctrl.h"', '缺少 #include "pinctrl.h"'],
+    ['#include "tcxo.h"', '缺少 #include "tcxo.h"'],
+    ['#include "soc_osal.h"', '缺少 #include "soc_osal.h"'],
+    ['#include "app_init.h"', '缺少 #include "app_init.h"']
+  ];
+  for(const [tok,msg] of checks){ if(!code.includes(tok)) errs.push({file:"pwm_example.c", line:1, msg}); }
+  const defs = [["PWM_CHANNEL",1],["PWM_GROUP_ID",1],["CONFIG_PWM_PIN",9],["CONFIG_PWM_PIN_MODE",1]];
+  for(const [name,val] of defs){
+    const re = new RegExp("#define\\s+" + name + "\\s+" + val + "\\b");
+    if(!re.test(code)) errs.push({file:"pwm_example.c", line:1, msg:`缺少或写错 #define ${name} ${val}`});
+  }
+  const calls = [
+    [/uapi_pin_set_mode\s*\(\s*CONFIG_PWM_PIN\s*,\s*CONFIG_PWM_PIN_MODE\s*\)\s*;/, "缺少 uapi_pin_set_mode(CONFIG_PWM_PIN, CONFIG_PWM_PIN_MODE);"],
+    [/uapi_pwm_init\s*\(\s*\)\s*;/, "缺少 uapi_pwm_init();"],
+    [/uapi_pwm_open\s*\(\s*PWM_CHANNEL\s*,\s*&cfg_no_repeat\s*\)\s*;/, "缺少 uapi_pwm_open(PWM_CHANNEL, &cfg_no_repeat);"],
+    [/uapi_pwm_start\s*\(\s*[^)]*\)\s*;/, "缺少 uapi_pwm_start(...);"],
+    [/uapi_pwm_close\s*\(\s*PWM_CHANNEL\s*\)\s*;/, "缺少 uapi_pwm_close(PWM_CHANNEL);"],
+    [/app_run\s*\(\s*pwm_entry\s*\)\s*;/, "缺少 app_run(pwm_entry);"]
+  ];
+  for(const [re,msg] of calls){ if(!re.test(stripComments(code))) errs.push({file:"pwm_example.c", line:1, msg}); }
+  if(code.includes("uapi_pwm_set_group")){
+    const n = argCount(stripComments(code), "uapi_pwm_set_group");
+    if(n === 2) errs.push({file:"pwm_example.c", line:(posOf(code,"uapi_pwm_set_group")||{}).line||1, msg:"uapi_pwm_set_group 参数个数不匹配：本机 SDK v151 是三参数 (group, &channel_id, 1)，不是 PDF 里的旧版两参数"});
+    if(n > 0 && n < 3) errs.push({file:"pwm_example.c", line:(posOf(code,"uapi_pwm_set_group")||{}).line||1, msg:"uapi_pwm_set_group 需要 3 个参数：组号、通道数组指针、长度"});
+  }else{
+    errs.push({file:"pwm_example.c", line:1, msg:"缺少 uapi_pwm_set_group(...)"});
+  }
+  const m = code.match(/pwm_config_t\s+cfg_no_repeat\s*=\s*\{([\s\S]*?)\}/);
+  if(!m){ errs.push({file:"pwm_example.c", line:1, msg:"找不到 cfg_no_repeat 的初始化（pwm_config_t cfg_no_repeat = {...}）"}); }
+  else{
+    const nums = m[1].split(",").map(s=>Number(s.trim())).filter(n=>!Number.isNaN(n));
+    if(nums.length < 2 || nums[0] <= 0 || nums[1] <= 0) errs.push({file:"pwm_example.c", line:(posOf(code,"cfg_no_repeat")||{}).line||1, msg:"low_time / high_time 必须是正数"});
+    else{
+      const f = 32e6/(nums[0]+nums[1]);
+      if(f < 50 || f > 12000) errs.push({file:"pwm_example.c", line:(posOf(code,"cfg_no_repeat")||{}).line||1, msg:`当前频率约 ${f.toFixed(1)} Hz，超出蜂鸣器常用范围（50–12000 Hz）`});
+    }
+  }
+  return errs;
+}
+function validateCMake(code){
+  const errs = [];
+  if(!/if\s*\(\s*DEFINED\s+CONFIG_SAMPLE_SUPPORT_BEEP\s*\)/i.test(code)) errs.push({file:"CMakeLists.txt", line:1, msg:"缺少 if(DEFINED CONFIG_SAMPLE_SUPPORT_BEEP)"});
+  if(!/add_subdirectory_if_exist\s*\(\s*beep\s*\)/i.test(code)) errs.push({file:"CMakeLists.txt", line:1, msg:"缺少 add_subdirectory_if_exist(beep)"});
+  if(!/endif\s*\(\s*\)/i.test(code)) errs.push({file:"CMakeLists.txt", line:1, msg:"缺少 endif()"});
+  const iSet = code.indexOf("set(SOURCES");
+  const iBlock = code.indexOf("add_subdirectory_if_exist(beep)");
+  if(iSet >= 0 && iBlock >= 0 && iBlock > iSet) errs.push({file:"CMakeLists.txt", line:1, msg:"BEEP 注册块必须写在 set(SOURCES ...) 之前"});
+  return errs;
+}
+function validateKconfig(code){
+  const errs = [];
+  if(!/config\s+SAMPLE_SUPPORT_BEEP\b/.test(code)) errs.push({file:"Kconfig", line:1, msg:"缺少 config SAMPLE_SUPPORT_BEEP"});
+  if(!/prompt\s+"Support BEEP Sample\."/i.test(code)) errs.push({file:"Kconfig", line:1, msg:'缺少 prompt "Support BEEP Sample."'});
+  if(!/default\s+n\b/.test(code)) errs.push({file:"Kconfig", line:1, msg:"缺少 default n"});
+  if(!/depends\s+on\s+ENABLE_PERIPHERAL_SAMPLE\b/.test(code)) errs.push({file:"Kconfig", line:1, msg:"缺少 depends on ENABLE_PERIPHERAL_SAMPLE"});
+  return errs;
+}
+function validateAll(){
+  let errs = [];
+  errs = errs.concat(validateCMake(state.cmake));
+  errs = errs.concat(validateKconfig(state.kconfig));
+  errs = errs.concat(validateC(state.ccode));
+  if(!state.folder) errs.push({file:"项目", line:0, msg:"还没有创建 beep 文件夹"});
+  if(!state.copied) errs.push({file:"项目", line:0, msg:"还没有复制 beep 样例文件"});
+  if(!state.menuconfig) errs.push({file:"配置", line:0, msg:"还没有在 menuconfig 里勾选 Support BEEP Sample."});
+  return errs;
+}
+function parseParams(code){
+  const m = code.match(/pwm_config_t\s+cfg_no_repeat\s*=\s*\{([\s\S]*?)\}/);
+  if(!m) return null;
+  const nums = m[1].split(",").map(s=>Number(s.trim())).filter(n=>!Number.isNaN(n));
+  if(nums.length < 2 || nums[0] <= 0 || nums[1] <= 0) return null;
+  return {low:nums[0], high:nums[1]};
+}
+function valuesFrom(p){ return {freq:32e6/(p.low+p.high), duty:p.high/(p.low+p.high)}; }
+
+/* ============================================================
+   渲染
+   ============================================================ */
+function render(){
+  stopScope();
+  renderSteps();
+  renderHeader();
+  renderStage();
+  renderSide();
+  renderProgress();
+  renderConsole();
+  save();
+}
+function renderSteps(){
+  const root = $("#stepList"); if(!root) return;
+  root.innerHTML = STEPS.map(s => {
+    const done = isDone(s.id);
+    const active = state.step === s.id;
+    const locked = !canGo(s.id) && !done;
+    return `<div class="step ${active?'active':''} ${done?'done':''} ${locked?'locked':''}" data-step="${s.id}">
+      <div class="num">${done?'✓':s.id}</div>
+      <div class="txt"><div class="t">${s.id}. ${esc(s.title)}</div><div class="d">${esc(s.short)}</div></div>
+    </div>`;
+  }).join("");
+  $$("#stepList .step").forEach(el => el.addEventListener("click", () => go(Number(el.dataset.step))));
+}
+function renderHeader(){
+  const s = STEPS[state.step];
+  $("#stageEyebrow").textContent = s.eyebrow;
+  $("#stageTitle").textContent = s.title;
+  const b = [];
+  if(state.previewMode) b.push(`<span class="badge blue preview-flag">预览模式</span>`);
+  if(state.submitted.c) b.push(`<span class="badge ok">代码已提交</span>`);
+  if(state.compiled) b.push(`<span class="badge ok">编译通过</span>`);
+  if(state.flashed) b.push(`<span class="badge ok">已烧录</span>`);
+  if(state.completed) b.push(`<span class="badge ok">已验收</span>`);
+  if(!state.compiled && state.step >= 6) b.push(`<span class="badge warn">未编译</span>`);
+  $("#stageBadges").innerHTML = b.join("");
+}
+function renderSide(){
+  const s = STEPS[state.step];
+  $("#taskCard").innerHTML = `<h3>本步任务</h3><p>${esc(s.task)}</p>
+    <ul>${s.ops.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  $("#knowledgeCard").innerHTML = `<h3>小知识 · ${esc(s.know.t)}</h3><div class="big">${esc(s.know.big)}</div><div class="small">${esc(s.know.small)}</div><p style="margin-top:10px">${esc(s.know.d)}</p>`;
+  $("#checklistCard").innerHTML = `<h3>检查清单</h3>` + s.checks.map((c,i)=>{
+    let done = false;
+    if(state.step===1) done = state.folder;
+    if(state.step===2) done = state.copied;
+    if(state.step===3) done = state.submitted.cmake;
+    if(state.step===4) done = state.submitted.kconfig;
+    if(state.step===5) done = state.menuconfig;
+    if(state.step===6) done = i < 3 ? (state.submitted.c || state.compiled) : state.compiled;
+    if(state.step===7) done = state.flashed;
+    if(state.step===8) done = i < 3 ? state.flashed : state.completed;
+    return `<div class="check ${done?'done':''}"><span class="box">✓</span><span>${esc(c)}</span></div>`;
+  }).join("") + (state.step===8 ? "" : `<div class="check ${state.completed?'done':''}"><span class="box">✓</span><span>完成验收</span></div>`);
+}
+function renderStage(){
+  const body = $("#stageBody");
+  switch(state.step){
+    case 0: body.innerHTML = step0(); bind0(); break;
+    case 1: body.innerHTML = step1(); bind1(); break;
+    case 2: body.innerHTML = step2(); bind2(); break;
+    case 3: body.innerHTML = step3(); bind3(); break;
+    case 4: body.innerHTML = step4(); bind4(); break;
+    case 5: body.innerHTML = step5(); bind5(); break;
+    case 6: body.innerHTML = step6(); bind6(); break;
+    case 7: body.innerHTML = step7(); bind7(); break;
+    case 8: body.innerHTML = step8(); bind8(); break;
+  }
+}
+
+/* ---------- 步骤 0 ---------- */
+function step0(){
+  return `<section class="card hero">
+    <div class="hero-copy">
+      <span class="pill">● WS63E · PWM · GPIO9</span>
+      <h2>让蜂鸣器<br>在 GPIO9 上唱起来</h2>
+      <p>从新建样例目录到烧录上板，一共 8 步。网页会记录你的每一次提交、编译和烧录；只有编译通过，虚拟蜂鸣器才会解锁。</p>
+      <div class="hero-actions">
+        <button class="btn primary big" id="btnStart">开始实训 →</button>
+        <button class="btn ghost" id="btnLook">先看接线与参数</button>
+      </div>
+      <div class="mini-stats">
+        <div><b>1</b>PWM 通道</div>
+        <div><b>9</b>GPIO / A9</div>
+        <div><b>1066.7</b>Hz 目标频率</div>
+        <div><b>33.3%</b>占空比</div>
+      </div>
+    </div>
+    <div class="hero-board">${boardSVG(false)}</div>
+  </section>
+  <div class="grid3">
+    <div class="panel"><h3>① 硬件链路</h3><p>交通灯板 <b>BEEP</b> → 底板 <b>A9</b> → 核心板 <b>GPIO9</b>。代码里把 GPIO9 设为 PWM 功能（mode 1）。</p></div>
+    <div class="panel"><h3>② 软件链路</h3><p>Kconfig 打开 <b>SAMPLE_SUPPORT_BEEP</b> → CMake 加入 <b>beep</b> 子目录 → 编译进固件 → 上板运行。</p></div>
+    <div class="panel"><h3>③ 你能看到</h3><p>编译控制台、烧录进度、虚拟蜂鸣器、PWM 示波器；每一步都有通过条件和检查清单。</p></div>
+  </div>
+  <details class="ref"><summary>查看真实接线图（SDK 参考界面）</summary><img src="${IMAGES.hardware}" alt="WS63E 开发板与交通灯板接线图"><div class="cap">图：核心板 + 底板 + 交通灯板。BEEP 在交通灯板上，经底板 A9 接核心板 GPIO9。</div></details>
+  <div class="alert info"><span>ℹ️</span><div><b>先说明：</b>本页的“编译”是教学模拟器（规则校验 + 拟真日志），不是真实 RISC-V 工具链；真实编译在 HiSpark Studio / SDK 命令行完成。虚拟蜂鸣器用 Web Audio 从扬声器发声，不能直接驱动主板 PC 蜂鸣器。</div></div>`;
+}
+function bind0(){
+  $("#btnStart").addEventListener("click", () => {
+    ensureAudio();
+    state.started = true; state.step = 1; log("开始实训：目标 GPIO9 / PWM CH1 / ≈1066.7 Hz", "ok"); save(); render();
+  });
+  $("#btnLook").addEventListener("click", () => {
+    modal(`<h3>接线与关键参数</h3><p class="sub">先看清这条链路，再开始做。</p>
+      <img src="${IMAGES.hardware}" style="width:100%;border-radius:12px;border:1px solid var(--line)">
+      <div class="grid3" style="margin-top:12px">
+        <div class="panel"><h3>BEEP</h3><p>交通灯板上的蜂鸣器</p></div>
+        <div class="panel"><h3>A9</h3><p>底板丝印，对应核心板 GPIO9</p></div>
+        <div class="panel"><h3>PWM</h3><p>通道 1、组 1、32 MHz 计数</p></div>
+      </div>
+      <div class="modal-actions"><button class="btn primary" onclick="closeModal()">知道了</button></div>`);
+  });
+}
+
+/* ---------- 步骤 1 ---------- */
+function step1(){
+  return `<div class="two-col">
+    <div class="panel">
+      <h3>项目文件（模拟）</h3>
+      <div class="tree">
+        <div class="row"><span class="ico">▾</span>src</div>
+        <div class="row" style="padding-left:18px"><span class="ico">▾</span>application</div>
+        <div class="row" style="padding-left:34px"><span class="ico">▾</span>samples</div>
+        <div class="row" style="padding-left:50px"><span class="ico">▾</span>peripheral</div>
+        <div class="row target" id="rowPeripheral" style="padding-left:66px"><span class="ico">▸</span><span>peripheral</span><span class="tag">在这里新建</span></div>
+        ${state.folder ? `<div class="row new" style="padding-left:82px"><span class="ico">📁</span>beep<span class="tag">新建</span></div>` : `<div class="row" style="padding-left:82px;color:var(--dim)"><span class="ico">·</span>（beep 待创建）</div>`}
+      </div>
+      <div class="actionbar">
+        <button class="btn primary" id="btnNewFolder">新建文件夹</button>
+        <span class="status ${state.folder?'ok':''}">${state.folder?'beep 已创建':'等待创建 beep'}</span>
+      </div>
+      <p style="margin-top:10px;color:var(--dim);font-size:11.5px">也可以直接在右侧文件树里右键 peripheral。</p>
+    </div>
+    <div class="panel">
+      <h3>操作提示</h3>
+      <p>在 <b>src/application/samples/peripheral</b> 上右键 → 新建文件夹 → 输入 <b>beep</b>。真实 HiSpark Studio 里也是同样的操作。</p>
+      <div class="alert info" style="margin-top:12px"><span>📁</span><div>目录名必须是 <b>beep</b>，后面 CMake 里的 <b>add_subdirectory_if_exist(beep)</b> 才能找到它。</div></div>
+      <details class="ref" style="margin-top:12px"><summary>查看真实界面：新建文件夹</summary><img src="${IMAGES.new_folder}" alt="新建 beep 文件夹"><div class="cap">SDK 参考界面：在 peripheral 下新建 beep 文件夹。</div></details>
+    </div>
+  </div>
+  ${state.folder ? `<div class="alert ok"><span>✅</span><div><b>beep 文件夹已创建。</b> 下一步把 vendor 里的样例复制进来。</div><div style="margin-left:auto"><button class="btn primary small" id="btnNext1">下一步：复制样例 →</button></div></div>` : ""}`;
+}
+function bind1(){
+  const open = () => {
+    modal(`<h3>新建文件夹</h3><p class="sub">父目录：src/application/samples/peripheral</p>
+      <div class="field"><label>文件夹名称</label><input id="folderName" value="beep" autocomplete="off" spellcheck="false"></div>
+      <div id="folderErr" class="alert err" style="display:none"><span>⚠️</span><div></div></div>
+      <div class="modal-actions"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn primary" id="btnCreateFolder">创建</button></div>`);
+    $("#folderName").focus();
+    const create = () => {
+      const name = $("#folderName").value.trim();
+      if(name !== "beep"){
+        $("#folderErr").style.display = "flex";
+        $("#folderErr").querySelector("div").textContent = "名称必须是 beep（全小写，不能有空格）";
+        return;
+      }
+      state.folder = true; state.step = 2; log("创建目录：src/application/samples/peripheral/beep", "ok"); closeModal(); save(); render();
+      toast("beep 文件夹创建成功","ok");
+    };
+    $("#btnCreateFolder").addEventListener("click", create);
+    $("#folderName").addEventListener("keydown", e => { if(e.key === "Enter") create(); });
+  };
+  $("#btnNewFolder") && $("#btnNewFolder").addEventListener("click", open);
+  $("#rowPeripheral") && $("#rowPeripheral").addEventListener("contextmenu", e => { e.preventDefault(); open(); });
+  $("#btnNext1") && $("#btnNext1").addEventListener("click", () => go(2));
+}
+
+/* ---------- 步骤 2 ---------- */
+function step2(){
+  const files = [
+    ["pwm_example.c","2.6 KB","PWM 初始化/启动/关闭"],
+    ["CMakeLists.txt","82 B","把源码加入构建"],
+    ["README.md","6.7 KB","样例说明"]
+  ];
+  return `<div class="two-col">
+    <div class="panel">
+      <h3>源：vendor 样例</h3>
+      <div class="filelist">
+        <div class="file ok"><span class="dot"></span>vendor/…/HiHope_NearLink_DK_WS63E_V03/demo/beep/<span class="size">目录</span></div>
+        ${files.map(f=>`<div class="file"><span class="dot"></span>${f[0]}<span class="size">${f[1]}</span></div>`).join("")}
+      </div>
+      <p style="margin-top:10px;color:var(--dim);font-size:11.5px">注意：PDF 写的是 vendor\\…\\beep；实际 SDK 在 demo\\beep。</p>
+    </div>
+    <div class="panel">
+      <h3>目标：samples/peripheral/beep</h3>
+      <div class="filelist">
+        <div class="file ${state.copied?'ok':''}"><span class="dot"></span>beep/<span class="size">${state.folder?'已创建':'未创建'}</span></div>
+        ${files.map(f=>`<div class="file ${state.copied?'ok':''}"><span class="dot"></span>${f[0]}<span class="size">${state.copied?'已复制':'待复制'}</span></div>`).join("")}
+      </div>
+      <div class="actionbar">
+        <button class="btn primary" id="btnCopy" ${state.folder?'':'disabled'}>复制全部文件</button>
+        <span class="status ${state.copied?'ok':''}">${state.copied?'3 个文件已到位':'等待复制'}</span>
+      </div>
+      ${state.copied?`<div class="alert ok" style="margin-top:12px"><span>✅</span><div>样例已复制。下一步写 CMake 注册。</div><div style="margin-left:auto"><button class="btn primary small" id="btnNext2">下一步：写 CMake →</button></div></div>`:""}
+    </div>
+  </div>
+  <details class="ref"><summary>查看真实界面：复制样例</summary><img src="${IMAGES.copy_sample}" alt="复制 beep 样例"><div class="cap">SDK 参考界面：把 demo/beep 里的内容复制到 samples/peripheral/beep。</div></details>
+  <details><summary style="cursor:pointer;color:var(--muted);font-size:12.5px">查看 pwm_example.c 关键代码（复制后可在步骤 6 编辑）</summary><pre class="code">${esc(C_CODE.split("\n").slice(0,34).join("\n"))}</pre></details>`;
+}
+function bind2(){
+  $("#btnCopy") && $("#btnCopy").addEventListener("click", async () => {
+    if(!state.folder){ toast("先在步骤 1 创建 beep 文件夹","err"); return; }
+    const btn = $("#btnCopy"); btn.disabled = true; btn.textContent = "复制中…";
+    await sleep(500);
+    state.copied = true; state.step = 3; log("复制样例：pwm_example.c / CMakeLists.txt / README.md → beep/", "ok"); save(); render(); toast("3 个文件已复制","ok");
+  });
+  $("#btnNext2") && $("#btnNext2").addEventListener("click", () => go(3));
+}
+
+/* ---------- 步骤 3 / 4 编辑器 ---------- */
+function step3(){
+  return `<div class="panel">
+    <h3>编辑 peripheral/CMakeLists.txt（节选）</h3>
+    <p>在 <b>set(SOURCES "${'${SOURCES}'}" PARENT_SCOPE)</b> 之前，补全 BEEP 注册块。</p>
+    ${editorHTML("cmake", state.cmake, false)}
+    <div class="actionbar">
+      <button class="btn primary" id="btnSubmitCmake">提交代码</button>
+      <button class="btn ghost" id="btnResetCmake">恢复初始片段</button>
+      ${state.fails.cmake>=3?`<button class="btn ghost" id="btnAnswerCmake">查看标准答案</button>`:""}
+      <span class="status ${state.submitted.cmake?'ok':''}">${state.submitted.cmake?'已提交 · 校验通过':'未提交'}</span>
+    </div>
+    ${state.submitted.cmake?`<div class="alert ok" style="margin-top:12px"><span>✅</span><div>CMake 注册通过。下一步写 Kconfig。</div><div style="margin-left:auto"><button class="btn primary small" id="btnNext3">下一步：写 Kconfig →</button></div></div>`:""}
+  </div>
+  <details class="ref"><summary>查看真实界面：CMakeLists 新增编译案例</summary><img src="${IMAGES.cmake}" alt="CMakeLists 新增 BEEP"><div class="cap">SDK 参考界面：在 set(SOURCES ...) 上方加入 if 块。</div></details>
+  <div class="alert info"><span>💡</span><div>提交时会检查：<b>if(DEFINED CONFIG_SAMPLE_SUPPORT_BEEP)</b>、<b>add_subdirectory_if_exist(beep)</b>、<b>endif()</b>，并且必须在 <b>set(SOURCES ...)</b> 之前。</div></div>`;
+}
+function bind3(){
+  bindEditor("cmake", v => {
+    state.cmake = v; state.submitted.cmake = false; state.compiled = false; state.flashed = false;
+    state.errorLine = null; save();
+    const st = $(".actionbar .status"); if(st){ st.textContent = "未提交"; st.className = "status"; }
+  });
+  $("#btnSubmitCmake") && $("#btnSubmitCmake").addEventListener("click", () => {
+    const errs = validateCMake(state.cmake);
+    if(errs.length){
+      state.fails.cmake++; log("CMake 校验失败：" + errs[0].msg, "err");
+      setErrorLine("cmake", 1); toast(errs[0].msg, "err"); save(); render(); return;
+    }
+    state.submitted.cmake = true; log("CMake 提交成功：BEEP 编译案例已注册", "ok"); save(); render(); toast("CMake 提交成功","ok");
+  });
+  $("#btnResetCmake") && $("#btnResetCmake").addEventListener("click", () => { state.cmake = CMAKE_TEMPLATE; state.submitted.cmake=false; state.compiled=false; state.flashed=false; save(); render(); });
+  $("#btnAnswerCmake") && $("#btnAnswerCmake").addEventListener("click", () => {
+    if(confirm("填入标准答案？这会覆盖你当前编辑器内容。")){ state.cmake = CMAKE_ANSWER; state.submitted.cmake=false; save(); render(); toast("已填入标准答案，请点提交","info"); }
+  });
+  $("#btnNext3") && $("#btnNext3").addEventListener("click", () => go(4));
+}
+
+function step4(){
+  return `<div class="panel">
+    <h3>编辑 peripheral/Kconfig（末尾节选）</h3>
+    <p>在文件末尾追加 BEEP 的配置项。注意：指导书截图的 help 文案误写成 WATCHDOG，我们改成 BEEP。</p>
+    ${editorHTML("kconfig", state.kconfig, false)}
+    <div class="actionbar">
+      <button class="btn primary" id="btnSubmitKconfig">提交代码</button>
+      <button class="btn ghost" id="btnResetKconfig">恢复初始片段</button>
+      ${state.fails.kconfig>=3?`<button class="btn ghost" id="btnAnswerKconfig">查看标准答案</button>`:""}
+      <span class="status ${state.submitted.kconfig?'ok':''}">${state.submitted.kconfig?'已提交 · 校验通过':'未提交'}</span>
+    </div>
+    ${state.submitted.kconfig?`<div class="alert ok" style="margin-top:12px"><span>✅</span><div>Kconfig 配置项通过。下一步在 menuconfig 里勾选它。</div><div style="margin-left:auto"><button class="btn primary small" id="btnNext4">下一步：menuconfig →</button></div></div>`:""}
+  </div>
+  <details class="ref"><summary>查看真实界面：Kconfig 新增配置项</summary><img src="${IMAGES.kconfig}" alt="Kconfig 新增 BEEP"><div class="cap">SDK 参考界面：文件末尾加入 config SAMPLE_SUPPORT_BEEP。</div></details>
+  <div class="alert info"><span>💡</span><div>提交时会检查：<b>config SAMPLE_SUPPORT_BEEP</b>、<b>prompt "Support BEEP Sample."</b>、<b>default n</b>、<b>depends on ENABLE_PERIPHERAL_SAMPLE</b>。</div></div>`;
+}
+function bind4(){
+  bindEditor("kconfig", v => {
+    state.kconfig = v; state.submitted.kconfig = false; state.compiled = false; state.flashed = false;
+    save();
+    const st = $(".actionbar .status"); if(st){ st.textContent = "未提交"; st.className = "status"; }
+  });
+  $("#btnSubmitKconfig") && $("#btnSubmitKconfig").addEventListener("click", () => {
+    const errs = validateKconfig(state.kconfig);
+    if(errs.length){ state.fails.kconfig++; log("Kconfig 校验失败：" + errs[0].msg, "err"); setErrorLine("kconfig", 1); toast(errs[0].msg,"err"); save(); render(); return; }
+    state.submitted.kconfig = true; log("Kconfig 提交成功：SAMPLE_SUPPORT_BEEP 已定义", "ok"); save(); render(); toast("Kconfig 提交成功","ok");
+  });
+  $("#btnResetKconfig") && $("#btnResetKconfig").addEventListener("click", () => { state.kconfig = KCONFIG_TEMPLATE; state.submitted.kconfig=false; state.compiled=false; state.flashed=false; save(); render(); });
+  $("#btnAnswerKconfig") && $("#btnAnswerKconfig").addEventListener("click", () => {
+    if(confirm("填入标准答案？这会覆盖你当前编辑器内容。")){ state.kconfig = KCONFIG_ANSWER; state.submitted.kconfig=false; save(); render(); toast("已填入标准答案，请点提交","info"); }
+  });
+  $("#btnNext4") && $("#btnNext4").addEventListener("click", () => go(5));
+}
+
+/* ---------- 步骤 5 ---------- */
+function step5(){
+  return `<div class="panel">
+    <h3>系统配置 / Kconfig</h3>
+    <p>点击“系统配置”，按路径 <b>Application → Enable the Sample of peripheral → Support BEEP Sample.</b> 勾选并 Save。</p>
+    <div class="actionbar">
+      <button class="btn primary" id="btnOpenMenu">打开系统配置</button>
+      <span class="status ${state.menuconfig?'ok':''}">${state.menuconfig?'CONFIG_SAMPLE_SUPPORT_BEEP=y':'等待勾选'}</span>
+    </div>
+    ${state.menuconfig?`<div class="alert ok" style="margin-top:12px"><span>✅</span><div>BEEP 已使能。下一步提交代码并编译。</div><div style="margin-left:auto"><button class="btn primary small" id="btnNext5">下一步：编译 →</button></div></div>`:""}
+    <pre class="code" style="margin-top:12px"># ws63_liteos_app.config 关键行
+CONFIG_ENABLE_PERIPHERAL_SAMPLE=y
+${state.menuconfig?'CONFIG_SAMPLE_SUPPORT_BEEP=y':'# CONFIG_SAMPLE_SUPPORT_BEEP is not set'}</pre>
+  </div>
+  <details class="ref"><summary>查看真实界面：系统配置入口</summary><img src="${IMAGES.menuconfig}" alt="系统配置菜单"><div class="cap">SDK 参考界面：Application → Enable the Sample of peripheral。</div></details>
+  <details class="ref"><summary>查看真实界面：勾选 Support BEEP Sample</summary><img src="${IMAGES.support_beep}" alt="勾选 Support BEEP Sample"><div class="cap">SDK 参考界面：勾选后点 Save。</div></details>
+  <div class="alert info"><span>💡</span><div>这一步的结果会写进 <b>ws63_liteos_app.config</b>：<b>CONFIG_SAMPLE_SUPPORT_BEEP=y</b>。CMake 里的 if 条件因此成立。</div></div>`;
+}
+function bind5(){
+  const open = () => {
+    modal(`<h3>系统配置 / Kconfig</h3><p class="sub">模拟 HiSpark Studio 的 menuconfig 界面。勾选 Support BEEP Sample. 后点 Save。</p>
+      <div class="kconfig-ui">
+        <div class="kconfig-tree">
+          <div class="krow"><input type="checkbox" checked disabled><span class="lbl">Application</span></div>
+          <div class="krow" style="padding-left:22px"><input type="checkbox" checked disabled><span class="lbl">Enable the Sample of peripheral</span><span class="sub">ENABLE_PERIPHERAL_SAMPLE</span></div>
+          <div class="krow" style="padding-left:40px"><input type="checkbox" disabled><span class="lbl">Support LED Sample.</span><span class="sub">关闭</span></div>
+          <div class="krow" style="padding-left:40px"><input type="checkbox" disabled><span class="lbl">Support BUTTON Sample.</span><span class="sub">关闭</span></div>
+          <div class="krow" style="padding-left:40px;background:rgba(77,163,255,.08)"><input type="checkbox" id="kBeepp"><span class="lbl" style="color:#fff">Support BEEP Sample.</span><span class="sub">本次要勾选</span></div>
+        </div>
+        <div class="kconfig-desc"><b>SAMPLE_SUPPORT_BEEP</b><br>Support BEEP Sample.<br><br>依赖：<b>ENABLE_PERIPHERAL_SAMPLE</b><br>默认：n<br><br><span style="color:var(--dim)">勾选后保存，配置里会出现 CONFIG_SAMPLE_SUPPORT_BEEP=y。</span></div>
+      </div>
+      <div class="modal-actions"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn primary" id="btnSaveMenu">Save</button></div>`);
+    $("#btnSaveMenu").addEventListener("click", () => {
+      if(!$("#kBeepp").checked){ toast("还没有勾选 Support BEEP Sample.","err"); return; }
+      state.menuconfig = true; state.step = 6; log("menuconfig：CONFIG_SAMPLE_SUPPORT_BEEP=y，已保存", "ok"); closeModal(); save(); render(); toast("BEEP 已使能，进入编译","ok");
+    });
+  };
+  $("#btnOpenMenu") && $("#btnOpenMenu").addEventListener("click", open);
+  $("#btnNext5") && $("#btnNext5").addEventListener("click", () => go(6));
+}
+
+/* ---------- 步骤 6 ---------- */
+function step6(){
+  const tabs = [["c","pwm_example.c"],["cmake","CMakeLists.txt"],["kconfig","Kconfig"]];
+  return `<div class="panel">
+    <h3>代码工作区</h3>
+    <p>检查 <b>pwm_example.c</b>，可以修改 <b>cfg_no_repeat</b> 里的 low/high 来改变音调。提交后编译；改任何代码都会重新锁定。</p>
+    <div class="editor-shell">
+      <div class="editor-top">
+        ${tabs.map(([k,t])=>`<button class="tab ${state.tab===k?'active':''}" data-tab="${k}">${t}${state.submitted[k]?'':'<span class="dirty"></span>'}</button>`).join("")}
+        <span style="margin-left:auto;color:var(--dim);font-size:11px">模拟编译 · 真实构建见报告</span>
+      </div>
+      ${state.tab==="c"?editorHTML("c", state.ccode, false):state.tab==="cmake"?editorHTML("cmake2", state.cmake, true):editorHTML("kconfig2", state.kconfig, true)}
+      <div class="codebar">
+        <button class="btn primary" id="btnSubmitAll">提交代码</button>
+        <button class="btn green" id="btnCompile" ${state.submitted.c?'':'disabled'}>编译</button>
+        <button class="btn ghost" id="btnRestore">恢复样例代码</button>
+        ${state.fails.c>=3?`<button class="btn ghost" id="btnAnswerC">查看标准答案</button>`:""}
+        <span class="status ${state.compiled?'ok':''}" id="compileStatus">${state.compiled?'已编译 · SUCCESS':(state.submitted.c?'已提交，等待编译':'未提交')}</span>
+      </div>
+    </div>
+    ${state.compiled?`<div class="alert ok" style="margin-top:12px"><span>✅</span><div><b>编译通过：SUCCESS。</b> 固件：output/ws63/fwpkg/ws63-liteos-app/ws63-liteos-app_all.fwpkg</div><div style="margin-left:auto"><button class="btn primary small" id="btnNext6">去烧录 →</button></div></div>`:""}
+  </div>
+  <details class="ref"><summary>查看真实界面：编译成功</summary><img src="${IMAGES.build_success}" alt="编译成功"><div class="cap">SDK 参考界面：编译完成显示 SUCCESS Took … seconds。</div></details>
+  <div class="alert info"><span>💡</span><div>编译检查：5 个 include、4 个宏、<b>uapi_pin_set_mode / uapi_pwm_init / uapi_pwm_open / uapi_pwm_set_group（三参数）/ uapi_pwm_start / uapi_pwm_close / app_run</b>、cfg 参数范围。</div></div>`;
+}
+function bind6(){
+  $$(".tab").forEach(t => t.addEventListener("click", () => { state.tab = t.dataset.tab; save(); render(); }));
+  bindEditor("c", v => {
+    state.ccode = v; state.submitted.c = false; state.compiled = false; state.flashed = false; save();
+    const st = $("#compileStatus"); if(st){ st.textContent = "未提交"; st.className = "status"; }
+  });
+  bindEditor("cmake2", v => { state.cmake = v; state.submitted.cmake = false; state.submitted.c = false; state.compiled = false; state.flashed = false; save(); });
+  bindEditor("kconfig2", v => { state.kconfig = v; state.submitted.kconfig = false; state.submitted.c = false; state.compiled = false; state.flashed = false; save(); });
+  $("#btnSubmitAll") && $("#btnSubmitAll").addEventListener("click", () => {
+    const errs = validateAll();
+    if(errs.length){
+      state.fails.c++;
+      errs.slice(0,8).forEach(e => log(`${e.file}:${e.line}: error: ${e.msg}`, "err"));
+      toast(errs[0].msg, "err");
+      if(errs[0].file === "CMakeLists.txt") state.step = 3;
+      else if(errs[0].file === "Kconfig") state.step = 4;
+      else setErrorLine("c", errs[0].line || 1);
+      save(); render(); return;
+    }
+    state.submitted.c = true; state.submitted.cmake = true; state.submitted.kconfig = true;
+    log("代码提交成功：pwm_example.c / CMakeLists.txt / Kconfig 全部通过静态检查", "ok");
+    save(); render(); toast("代码已提交，可以编译","ok");
+  });
+  $("#btnCompile") && $("#btnCompile").addEventListener("click", runCompile);
+  $("#btnRestore") && $("#btnRestore").addEventListener("click", () => {
+    if(!confirm("恢复为 vendor 原始样例代码？你修改的内容会丢失。")) return;
+    state.ccode = C_CODE; state.submitted.c=false; state.compiled=false; state.flashed=false; state.fails.c=0; save(); render(); toast("已恢复样例代码","info");
+  });
+  $("#btnAnswerC") && $("#btnAnswerC").addEventListener("click", () => {
+    if(confirm("填入 vendor 原始样例代码？")){ state.ccode = C_CODE; state.submitted.c=false; state.compiled=false; state.flashed=false; save(); render(); }
+  });
+  $("#btnNext6") && $("#btnNext6").addEventListener("click", () => go(7));
+  if(state.previewMode && state.tab === "c"){
+    const ta = $("#ed-c");
+    if(ta){
+      const idx = state.ccode.split("\n").findIndex(l => l.includes("cfg_no_repeat"));
+      const line = idx >= 0 ? idx + 1 : 1;
+      const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+      ta.scrollTop = Math.max(0, (line - 8) * lh);
+    }
+  }
+}
+async function runCompile(){
+  if(state.busy) return;
+  if(!state.submitted.c || !state.submitted.cmake || !state.submitted.kconfig){ toast("先提交代码","err"); return; }
+  state.busy = true; $("#btnCompile").disabled = true; $("#consoleLive").textContent = "BUILDING";
+  clearLog();
+  log("$ python build.py -c ws63-liteos-app", "cmd");
+  const stages = [
+    "[1/4] 检查工程结构 … beep/ 样例目录",
+    "[2/4] 检查 CMakeLists.txt … add_subdirectory_if_exist(beep)",
+    "[3/4] 检查 Kconfig … SAMPLE_SUPPORT_BEEP",
+    "[4/4] 编译 pwm_example.c …"
+  ];
+  for(const s of stages){ await sleep(260); log(s, "dim"); }
+  await sleep(420);
+  const errs = validateAll();
+  if(errs.length){
+    errs.slice(0,10).forEach(e => log(`${e.file}:${e.line}: error: ${e.msg}`, "err"));
+    log("BUILD FAILED", "err");
+    state.fails.c++; state.compiled = false; state.busy = false; $("#consoleLive").textContent = "FAILED";
+    save(); render(); toast("编译失败，请看控制台","err"); return;
+  }
+  const p = parseParams(state.ccode);
+  if(!p){ log("error: 无法解析 cfg_no_repeat 参数", "err"); state.busy=false; save(); render(); return; }
+  state.params = p; state.preview = {...p};
+  const v = valuesFrom(p);
+  log(`PWM: low=${p.low}, high=${p.high}, f=${v.freq.toFixed(1)} Hz, duty=${(v.duty*100).toFixed(1)}%`, "dim");
+  log("SUCCESS Took 2.31 seconds", "ok");
+  log("固件: output/ws63/fwpkg/ws63-liteos-app/ws63-liteos-app_all.fwpkg", "dim");
+  state.compiled = true; state.busy = false; state.step = 6; $("#consoleLive").textContent = "SUCCESS";
+  save(); render(); toast("编译通过，已解锁烧录","ok");
+}
+
+/* ---------- 步骤 7 ---------- */
+function step7(){
+  const ports = ["COM5","COM3","COM4","COM6","COM7"];
+  const stage = state.flashStage;
+  return `<div class="panel">
+    <h3>程序加载 / 烧录</h3>
+    <p>传输方式选 <b>serial</b>，端口选 <b>COM5</b>（CH340K），波特率 115200。点“程序加载”后，出现 Connecting 时按板子 RST。</p>
+    <div class="grid3" style="margin-top:12px">
+      <div class="field"><label>传输方式</label><select disabled><option>serial</option></select></div>
+      <div class="field"><label>端口</label><select id="portSel">${ports.map(p=>`<option ${state.port===p?'selected':''}>${p}</option>`).join("")}</select></div>
+      <div class="field"><label>波特率</label><select disabled><option>115200</option></select></div>
+    </div>
+    <div class="field"><label>固件</label><input readonly value="output/ws63/fwpkg/ws63-liteos-app/ws63-liteos-app_all.fwpkg"></div>
+    <div class="actionbar">
+      <button class="btn primary" id="btnFlash" ${state.compiled?'':'disabled'}>程序加载</button>
+      <span class="status">${state.compiled?'已编译，可以烧录':'先完成编译'}</span>
+    </div>
+    ${stage==="connecting"?`<div class="alert warn" style="margin-top:14px"><span>⏳</span><div><b>Connecting, please reset device...</b><br>请按一下开发板上的 RST/复位键（或重新上电）。</div></div>`:""}
+    ${stage==="reset"?`<div class="alert warn" style="margin-top:14px"><span>🔌</span><div><b>等待复位：</b>现在按板子 RST，bootloader 才会接管串口。</div><div style="margin-left:auto"><button class="btn primary" id="btnResetBoard">复位开发板</button></div></div>`:""}
+    ${stage==="writing"?`<div class="well" style="margin-top:14px"><div class="slider"><label><span>烧录中…</span><b>${state.flashProgress}%</b></label><input type="range" min="0" max="100" value="${state.flashProgress}" disabled></div></div>`:""}
+    ${stage==="done"?`<div class="alert ok" style="margin-top:14px"><span>✅</span><div><b>烧录完成，设备已复位。</b> 交通灯板上的蜂鸣器会鸣响约 1 秒。</div><div style="margin-left:auto"><button class="btn primary small" id="btnNext7">去听蜂鸣器 →</button></div></div>`:""}
+  </div>
+  <details class="ref"><summary>查看真实界面：程序加载配置</summary><img src="${IMAGES.project_config}" alt="程序加载配置"><div class="cap">SDK 参考界面：Project Config → 程序加载 → serial → COMx。</div></details>
+  <details class="ref"><summary>查看真实界面：Connecting / 复位</summary><img src="${IMAGES.flash_connecting}" alt="Connecting please reset"><div class="cap">出现 Connecting, please reset device... 时按 RST。</div></details>
+  <div class="alert info"><span>💡</span><div>本页模拟烧录；真实板子请用 HiSpark Studio 或 BurnToolCmd 烧录。<b>COM3 是蓝牙虚拟串口</b>，CH340K 开发板实际是 <b>COM5</b>（本次实测成功端口）。</div></div>`;
+}
+function bind7(){
+  $("#portSel") && $("#portSel").addEventListener("change", e => { state.port = e.target.value; save(); });
+  $("#btnFlash") && $("#btnFlash").addEventListener("click", () => {
+    if(!state.compiled){ toast("先完成编译","err"); return; }
+    state.flashStage = "connecting"; state.flashProgress = 0; log(`BurnToolCmd --burn -n ws63 -m serial ${state.port} --baudRate 115200`, "cmd"); log("SerialPort connected. Please power off, then power on the device.", "warn"); save(); render();
+    setTimeout(() => { if(state.flashStage === "connecting"){ state.flashStage = "reset"; log("Connecting, please reset device...", "warn"); save(); render(); } }, 1100);
+  });
+  $("#btnResetBoard") && $("#btnResetBoard").addEventListener("click", () => {
+    if(state.flashStage !== "reset") return;
+    state.flashStage = "writing"; state.flashProgress = 0; save(); render();
+    log("复位成功，开始烧录…", "info");
+    const timer = setInterval(() => {
+      state.flashProgress = Math.min(100, state.flashProgress + Math.ceil(Math.random()*13));
+      const p = $("#stageBody input[type=range]"); if(p) p.value = state.flashProgress;
+      const b = $("#stageBody .slider b"); if(b) b.textContent = state.flashProgress + "%";
+      if(state.flashProgress >= 100){
+        clearInterval(timer);
+        state.flashStage = "done"; state.flashed = true; log("烧录完成：Verify OK，设备复位", "ok"); save(); render(); toast("烧录完成，蜂鸣器解锁","ok");
+      }
+    }, 260);
+  });
+  $("#btnNext7") && $("#btnNext7").addEventListener("click", () => go(8));
+}
+
+/* ---------- 步骤 8 ---------- */
+function step8(){
+  if(!state.flashed){
+    return `<div class="card lockcard"><div class="big">🔒</div><h3>虚拟蜂鸣器还没解锁</h3><p>只有完成代码提交、编译通过、烧录模拟之后，才能驱动虚拟蜂鸣器。这是为了还原真实流程：没烧进去，板子不会响。</p><div class="actionbar" style="justify-content:center"><button class="btn primary" onclick="go(6)">回到编译</button><button class="btn ghost" onclick="go(7)">回到烧录</button></div></div>`;
+  }
+  const pv = state.preview || state.params;
+  const v = valuesFrom(pv);
+  const cv = valuesFrom(state.params);
+  return `<div class="panel">
+    <h3>虚拟蜂鸣器 · 交通灯板</h3>
+    <div class="two-col" style="align-items:center">
+      <div>${boardSVG(!!state.playing)}</div>
+      <div>
+        <div class="actionbar">
+          <button class="btn primary big" id="btnBeepOnce">鸣响 1 秒</button>
+          <button class="btn green" id="btnToggle">${state.playing?'停止':'持续鸣响'}</button>
+          <button class="btn ghost" id="btnStop">停止</button>
+        </div>
+        <div class="readout">
+          <div class="r"><span>试听频率</span><b>${v.freq.toFixed(1)} Hz</b></div>
+          <div class="r"><span>试听占空比</span><b>${(v.duty*100).toFixed(1)}%</b></div>
+          <div class="r"><span>代码频率</span><b>${cv.freq.toFixed(1)} Hz</b></div>
+          <div class="r"><span>代码占空比</span><b>${(cv.duty*100).toFixed(1)}%</b></div>
+        </div>
+        <div class="alert info" style="margin-top:12px"><span>🔊</span><div>浏览器不能直接驱动主板蜂鸣器；这里用 Web Audio 合成同频脉冲波，从扬声器/耳机发声。</div></div>
+      </div>
+    </div>
+    <div class="buzzer-controls" style="margin-top:14px">
+      <div class="panel">
+        <h3>试听参数（不改代码）</h3>
+        <div class="slider"><label><span>频率</span><b id="freqLabel">${Math.round(v.freq)} Hz</b></label><input type="range" id="freqSlider" min="200" max="4000" step="1" value="${Math.round(clamp(v.freq,200,4000))}"></div>
+        <div class="slider"><label><span>占空比</span><b id="dutyLabel">${(v.duty*100).toFixed(0)}%</b></label><input type="range" id="dutySlider" min="5" max="95" step="1" value="${Math.round(v.duty*100)}"></div>
+        <div class="slider"><label><span>音量</span><b id="volLabel">${Math.round(state.volume*100)}%</b></label><input type="range" id="volSlider" min="2" max="30" step="1" value="${Math.round(state.volume*100)}"></div>
+        <div class="actionbar"><button class="btn ghost" id="btnApply">应用参数到代码（需重新编译）</button></div>
+      </div>
+      <div class="panel">
+        <h3>PWM 示波器</h3>
+        <canvas id="scope" width="720" height="340"></canvas>
+        <p style="margin-top:8px;color:var(--dim);font-size:11.5px">高电平时间 = high_time 个 32 MHz 计数；周期 = low + high。占空比 = high / (low + high)。</p>
+      </div>
+    </div>
+    <div class="actionbar" style="margin-top:14px">
+      <button class="btn primary" id="btnFinish">完成验收</button>
+      <button class="btn ghost" id="btnRecord">生成实训记录</button>
+      <button class="btn ghost" onclick="go(6)">回到代码</button>
+      <span class="status ${state.completed?'ok':''}">${state.completed?'已验收':'等待验收'}</span>
+    </div>
+  </div>
+  <details class="ref"><summary>查看真实界面：板子与接线</summary><img src="${IMAGES.hardware}" alt="板子接线"><div class="cap">实物板子：交通灯板 BEEP → A9 → GPIO9。</div></details>`;
+}
+function bind8(){
+  const fs = $("#freqSlider"), ds = $("#dutySlider"), vs = $("#volSlider");
+  if(fs) fs.addEventListener("input", () => { state.preview = {low: Math.round(32e6/Number(fs.value)*(1-Number(ds.value)/100)), high: Math.round(32e6/Number(fs.value)*Number(ds.value)/100)}; $("#freqLabel").textContent = fs.value + " Hz"; drawScope(); });
+  if(ds) ds.addEventListener("input", () => { state.preview = {low: Math.round(32e6/Number(fs.value)*(1-Number(ds.value)/100)), high: Math.round(32e6/Number(fs.value)*Number(ds.value)/100)}; $("#dutyLabel").textContent = ds.value + "%"; drawScope(); });
+  if(vs) vs.addEventListener("input", () => { state.volume = Number(vs.value)/100; if(masterGain) masterGain.gain.value = state.volume; $("#volLabel").textContent = vs.value + "%"; save(); });
+  $("#btnBeepOnce") && $("#btnBeepOnce").addEventListener("click", () => { if(!state.flashed) return; beepOnce(); });
+  $("#btnToggle") && $("#btnToggle").addEventListener("click", () => { if(state.playing){ stopTone(); } else { startTone({duration:null}); } });
+  $("#btnStop") && $("#btnStop").addEventListener("click", () => stopTone());
+  $("#btnApply") && $("#btnApply").addEventListener("click", () => {
+    const p = state.preview;
+    const re = /(pwm_config_t\s+cfg_no_repeat\s*=\s*\{\s*)\d+(\s*,\s*)\d+/;
+    if(!re.test(state.ccode)){ toast("没找到 cfg_no_repeat，先恢复样例代码","err"); return; }
+    state.ccode = state.ccode.replace(re, `$1${p.low}$2${p.high}`);
+    state.params = {...p}; state.submitted.c = false; state.compiled = false; state.flashed = false;
+    state.step = 6; log(`应用试听参数到代码：low=${p.low}, high=${p.high}，需要重新提交/编译/烧录`, "warn");
+    save(); render(); toast("已写入代码，请重新编译并烧录","info");
+  });
+  $("#btnFinish") && $("#btnFinish").addEventListener("click", () => {
+    state.completed = true; save(); render(); log("验收完成：实训六 蜂鸣器案例", "ok");
+    modal(`<h3>🎉 验收完成</h3><p class="sub">你已经走完 8 个步骤：新建样例、复制代码、注册 CMake/Kconfig、menuconfig、提交/编译、烧录、试听。</p>
+      <div class="grid3"><div class="panel"><h3>PWM</h3><p>CH1 / GROUP1 / GPIO9</p></div><div class="panel"><h3>频率</h3><p>${valuesFrom(state.params).freq.toFixed(1)} Hz</p></div><div class="panel"><h3>占空比</h3><p>${(valuesFrom(state.params).duty*100).toFixed(1)}%</p></div></div>
+      <div class="modal-actions"><button class="btn ghost" id="btnRec2">下载实训记录</button><button class="btn primary" onclick="closeModal()">完成</button></div>`);
+    $("#btnRec2") && $("#btnRec2").addEventListener("click", downloadRecord);
+  });
+  $("#btnRecord") && $("#btnRecord").addEventListener("click", () => showRecord());
+  drawScope();
+}
+
+/* ============================================================
+   虚拟蜂鸣器：Web Audio + 示波器
+   ============================================================ */
+function ensureAudio(){
+  try{
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC){ toast("当前浏览器不支持 Web Audio，请用 Edge/Chrome 打开","err"); return false; }
+      audioCtx = new AC();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = state.volume;
+      masterGain.connect(audioCtx.destination);
+    }
+    if(audioCtx.state === "suspended") audioCtx.resume();
+    return true;
+  }catch(e){ toast("音频初始化失败：" + e.message,"err"); return false; }
+}
+function pulseWave(duty){
+  const n = 64, real = new Float32Array(n+1), imag = new Float32Array(n+1);
+  for(let k=1;k<=n;k++) real[k] = (2/(k*Math.PI))*Math.sin(k*Math.PI*duty);
+  return audioCtx.createPeriodicWave(real, imag, {disableNormalization:false});
+}
+function startTone({duration=null}={}){
+  if(!state.flashed){ toast("先编译并烧录","err"); return; }
+  if(!ensureAudio()) return;
+  stopTone(true);
+  const v = valuesFrom(state.preview);
+  const osc = audioCtx.createOscillator();
+  osc.setPeriodicWave(pulseWave(v.duty));
+  osc.frequency.value = v.freq;
+  const g = audioCtx.createGain();
+  const now = audioCtx.currentTime;
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, state.volume), now + 0.008);
+  if(duration){
+    g.gain.setValueAtTime(Math.max(0.0002, state.volume), now + Math.max(0.02, duration - 0.03));
+    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.stop(now + duration + 0.03);
+  }
+  osc.connect(g); g.connect(masterGain);
+  osc.start(now);
+  activeOsc = osc; activeGain = g;
+  state.playing = duration ? "once" : "continuous";
+  if(duration) playingTimer = setTimeout(() => { state.playing = false; activeOsc = null; activeGain = null; render(); }, duration*1000 + 40);
+  render();
+}
+function stopTone(silent=false){
+  if(playingTimer){ clearTimeout(playingTimer); playingTimer = null; }
+  if(activeGain && audioCtx){
+    try{
+      const now = audioCtx.currentTime;
+      activeGain.gain.cancelScheduledValues(now);
+      activeGain.gain.setValueAtTime(Math.max(0.0001, activeGain.gain.value || 0.0001), now);
+      activeGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+    }catch(e){}
+  }
+  if(activeOsc && audioCtx){ try{ activeOsc.stop(audioCtx.currentTime + 0.05); }catch(e){} activeOsc = null; }
+  activeGain = null;
+  state.playing = false;
+  if(!silent) render();
+}
+function beepOnce(){ startTone({duration:1}); }
+
+function drawScope(){
+  const c = $("#scope"); if(!c) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if(c.width !== 720*dpr){ c.width = 720*dpr; c.height = 340*dpr; }
+  const ctx = c.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W = 720, H = 340;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#050b15"; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = "rgba(65,100,150,.22)"; ctx.lineWidth = 1;
+  for(let x=0;x<=W;x+=36){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=0;y<=H;y+=34){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  const p = state.preview || state.params;
+  const v = valuesFrom(p);
+  const duty = clamp(v.duty, .02, .98);
+  const left=50, right=W-24, top=54, bottom=H-54, cyc=2;
+  const period=(right-left)/cyc;
+  const yHigh=top, yLow=bottom;
+  ctx.strokeStyle = "#4da3ff"; ctx.lineWidth = 3; ctx.shadowColor = "rgba(77,163,255,.5)"; ctx.shadowBlur = 8;
+  ctx.beginPath();
+  for(let i=0;i<cyc;i++){
+    const x0=left+i*period, xh=x0+period*duty;
+    ctx.moveTo(x0,yLow); ctx.lineTo(x0,yHigh); ctx.lineTo(xh,yHigh); ctx.lineTo(xh,yLow); ctx.lineTo(x0+period,yLow);
+  }
+  ctx.stroke(); ctx.shadowBlur=0;
+  ctx.fillStyle = "#8fb4df"; ctx.font = "12px Consolas,monospace";
+  ctx.fillText(`高电平 ${p.high} 计数`, left+8, yHigh-10);
+  ctx.fillText(`低电平 ${p.low} 计数`, left+8, yLow+22);
+  ctx.fillStyle = "#38d6a4"; ctx.font = "700 14px Consolas,monospace";
+  ctx.fillText(`f = ${v.freq.toFixed(1)} Hz`, 16, 26);
+  ctx.fillText(`duty = ${(duty*100).toFixed(1)}%`, W-190, 26);
+  if(state.playing){
+    const t = (performance.now()/1000) % 1;
+    const x = left + t*period*cyc;
+    ctx.strokeStyle = "rgba(255,207,92,.9)"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x, top-10); ctx.lineTo(x, bottom+10); ctx.stroke();
+  }
+}
+function stopScope(){ if(scopeRAF){ cancelAnimationFrame(scopeRAF); scopeRAF=0; } }
+function scopeLoop(){
+  drawScope();
+  if(state.playing) scopeRAF = requestAnimationFrame(scopeLoop);
+}
+setInterval(() => { if(state.playing && state.step===8) drawScope(); }, 60);
+
+/* ============================================================
+   记录 / 帮助 / 重置
+   ============================================================ */
+function summaryText(){
+  const v = valuesFrom(state.params);
+  return `实训六 蜂鸣器案例 · 交互实训记录
+时间：${new Date().toLocaleString("zh-CN",{hour12:false})}
+学校：重庆建筑科技职业学院 · 数字工程学院
+班级：物联网专贯本2班
+课程：星闪技术应用实训
+
+步骤：${state.completed ? "8/8 完成" : maxStep() + "/8"}
+目录：src/application/samples/peripheral/beep
+编译：${state.compiled ? "SUCCESS（网页模拟）" : "未通过"}
+烧录：${state.flashed ? "完成（网页模拟），端口 " + state.port : "未完成"}
+PWM：通道 1 / 组 1 / GPIO9
+参数：low=${state.params.low}, high=${state.params.high}
+频率：${v.freq.toFixed(1)} Hz
+占空比：${(v.duty*100).toFixed(1)}%
+真实编译：见实训报告与 验证记录/build*.log
+说明：网页编译为教学模拟器；实物结果以 HiSpark Studio / 开发板为准。`;
+}
+function downloadRecord(){
+  const text = summaryText();
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "实训六_蜂鸣器_交互记录.txt";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function showRecord(){
+  modal(`<h3>实训记录</h3><p class="sub">可以下载为 txt，附在报告后面。</p><pre class="code" style="max-height:420px">${esc(summaryText())}</pre>
+    <div class="modal-actions"><button class="btn ghost" onclick="closeModal()">关闭</button><button class="btn primary" id="btnDownload">下载 .txt</button></div>`);
+  $("#btnDownload").addEventListener("click", downloadRecord);
+}
+function showHelp(){
+  modal(`<h3>使用说明</h3><p class="sub">这是一个离线单文件网页，按 8 步还原蜂鸣器实训流程。</p>
+    <div class="grid2">
+      <div class="panel"><h3>怎么用</h3><ul><li>按左侧任务地图从 0 走到 8，不能跳步。</li><li>步骤 3/4/6 需要写代码并点“提交代码”。</li><li>步骤 6 编译通过后才能烧录；烧录后才能响。</li></ul></div>
+      <div class="panel"><h3>两个“编译”</h3><ul><li>网页里的编译是<b>教学模拟器</b>，做规则校验和拟真日志。</li><li>真实编译在 HiSpark Studio 或 SDK 命令行完成，结果见报告。</li></ul></div>
+      <div class="panel"><h3>声音</h3><ul><li>虚拟蜂鸣器用 Web Audio，从扬声器/耳机发声。</li><li>浏览器不能直接驱动主板 PC 蜂鸣器。</li><li>第一次发声需要点击按钮（浏览器策略）。</li></ul></div>
+      <div class="panel"><h3>数据</h3><ul><li>进度保存在浏览器 localStorage。</li><li>换浏览器/清缓存会丢进度。</li><li>“重置”会清空所有步骤和代码。</li></ul></div>
+    </div>
+    <div class="modal-actions"><button class="btn primary" onclick="closeModal()">知道了</button></div>`);
+}
+function resetAll(){
+  if(!confirm("重置全部进度、代码和日志？此操作不可撤销。")) return;
+  stopTone(true);
+  state = defaultState();
+  save(); render();
+  toast("已重置","info");
+}
+
+/* ============================================================
+   板子 SVG
+   ============================================================ */
+function boardSVG(playing){
+  return `<svg class="board-svg ${playing?'playing':''}" viewBox="0 0 520 330" role="img" aria-label="WS63E 核心板、底板与交通灯板示意图">
+  <defs>
+    <linearGradient id="pcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#153a3a"/><stop offset="1" stop-color="#0b2426"/></linearGradient>
+    <linearGradient id="pcb2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b2a44"/><stop offset="1" stop-color="#0e1729"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f4d47a"/><stop offset="1" stop-color="#b8913d"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect x="8" y="34" width="504" height="272" rx="16" fill="url(#pcb)" stroke="#2a5a58" stroke-width="2"/>
+  <text x="24" y="58" fill="#79b9ad" font-size="11" font-family="Consolas,monospace">HISPARK_WIFI_IoT_EXB_VER.A · 底板</text>
+  <rect x="26" y="76" width="118" height="196" rx="10" fill="url(#pcb2)" stroke="#3a5c90"/>
+  <text x="38" y="94" fill="#9fc3f0" font-size="10" font-family="Consolas,monospace">核心板</text>
+  <rect x="42" y="106" width="74" height="58" rx="6" fill="#0a1424" stroke="#5f83b8"/>
+  <text x="49" y="128" fill="#7cc8ff" font-size="10" font-family="Consolas,monospace">WS63</text>
+  <text x="49" y="143" fill="#6c7f9f" font-size="8" font-family="Consolas,monospace">NearLink</text>
+  <rect x="36" y="176" width="98" height="8" rx="3" fill="url(#gold)"/>
+  <rect x="36" y="196" width="98" height="8" rx="3" fill="url(#gold)"/>
+  <rect x="36" y="216" width="98" height="8" rx="3" fill="url(#gold)"/>
+  <text x="38" y="248" fill="#7cc8ff" font-size="10" font-family="Consolas,monospace">GPIO9</text>
+  <rect x="160" y="76" width="150" height="196" rx="10" fill="#0c1a2b" stroke="#3a5c90"/>
+  <text x="172" y="94" fill="#9fc3f0" font-size="10" font-family="Consolas,monospace">底板排针 / A9</text>
+  <rect x="176" y="112" width="118" height="54" rx="6" fill="#07101d" stroke="#2f4a70"/>
+  <text x="186" y="134" fill="#ffe4a0" font-size="10" font-family="Consolas,monospace">A9 → GPIO9</text>
+  <text x="186" y="150" fill="#6c7f9f" font-size="9" font-family="Consolas,monospace">BEEP 信号</text>
+  <rect x="176" y="184" width="118" height="68" rx="6" fill="#0a1425" stroke="#2f4a70"/>
+  <text x="186" y="204" fill="#8ef0b4" font-size="10" font-family="Consolas,monospace">PWM CH1</text>
+  <text x="186" y="220" fill="#6c7f9f" font-size="9" font-family="Consolas,monospace">32 MHz 计数</text>
+  <rect x="330" y="76" width="164" height="196" rx="10" fill="#101826" stroke="#3a5c90"/>
+  <text x="342" y="94" fill="#9fc3f0" font-size="10" font-family="Consolas,monospace">交通灯板</text>
+  <circle class="led led-red" cx="360" cy="118" r="11" fill="#ff5d6c" opacity=".75"/>
+  <circle class="led led-yellow" cx="392" cy="118" r="11" fill="#ffcf5c" opacity=".75"/>
+  <circle class="led led-green" cx="424" cy="118" r="11" fill="#46d17f" opacity=".75"/>
+  <text x="342" y="148" fill="#6c7f9f" font-size="8" font-family="Consolas,monospace">RED / YELLOW / GREEN</text>
+  <g>
+    <circle cx="420" cy="210" r="26" fill="#0a1424" stroke="#f4d47a" stroke-width="2"/>
+    <circle cx="420" cy="210" r="17" fill="#182b45"/>
+    <circle cx="420" cy="210" r="7" fill="#7cc8ff" filter="url(#glow)" opacity=".9"/>
+    <circle class="wave w1" cx="420" cy="210" r="32" fill="none" stroke="#7cc8ff" stroke-width="2"/>
+    <circle class="wave w2" cx="420" cy="210" r="32" fill="none" stroke="#38d6a4" stroke-width="2"/>
+    <circle class="wave w3" cx="420" cy="210" r="32" fill="none" stroke="#ffcf5c" stroke-width="2"/>
+  </g>
+  <text x="386" y="256" fill="#f4d47a" font-size="10" font-family="Consolas,monospace">BEEP</text>
+  <path d="M150 218 C 175 218, 175 218, 176 218" stroke="#f4d47a" stroke-width="2" fill="none" stroke-dasharray="4 3"/>
+  <text x="150" y="240" fill="#8fb4df" font-size="9" font-family="Consolas,monospace">A9</text>
+  <text x="8" y="322" fill="#6c7f9f" font-size="9" font-family="Consolas,monospace">示意图 · 非精确比例</text>
+</svg>`;
+}
+
+/* ============================================================
+   自测 / 预览 / 初始化
+   ============================================================ */
+function setPreview(mode){
+  state = defaultState();
+  state.previewMode = true;
+  document.body.classList.add("preview");
+  state.started = true; state.folder = true; state.copied = true;
+  state.submitted = {cmake:true, kconfig:true, c:true};
+  state.menuconfig = true; state.compiled = true; state.flashed = true;
+  state.params = parseParams(C_CODE) || {low:20000,high:10000};
+  state.preview = {...state.params};
+  state.step = Number(mode) || 8;
+  if(state.step === 6){ state.compiled = false; state.flashed = false; }
+  if(state.step < 8){ state.flashed = false; }
+  save(); render();
+}
+async function runSelfTest(){
+  document.body.classList.add("selftest");
+  const out = $("#selftestOut");
+  const results = [];
+  const ok = (name, cond) => results.push((cond ? "PASS" : "FAIL") + " " + name);
+  state = defaultState();
+  ok("initial step 0", state.step === 0 && maxStep() === 0);
+  state.started = true; ok("start unlocks 1", maxStep() === 1);
+  state.folder = true; ok("folder unlocks 2", maxStep() === 2);
+  state.copied = true; ok("copy unlocks 3", maxStep() === 3);
+  const badCmake = "set(SOURCES \"${SOURCES}\" PARENT_SCOPE)";
+  ok("bad cmake rejected", validateCMake(badCmake).length > 0);
+  state.cmake = CMAKE_ANSWER; state.submitted.cmake = true; ok("good cmake accepted", validateCMake(state.cmake).length === 0);
+  ok("cmake unlocks 4", maxStep() === 4);
+  state.kconfig = KCONFIG_ANSWER; state.submitted.kconfig = true; ok("good kconfig accepted", validateKconfig(state.kconfig).length === 0);
+  ok("kconfig unlocks 5", maxStep() === 5);
+  state.menuconfig = true; ok("menuconfig unlocks 6", maxStep() === 6);
+  const badC = C_CODE.replace("uapi_pwm_open(PWM_CHANNEL, &cfg_no_repeat);", "");
+  ok("bad C rejected", validateC(badC).length > 0);
+  ok("stock C accepted", validateC(C_CODE).length === 0);
+  state.ccode = C_CODE; state.submitted.c = true; state.submitted.cmake = true; state.submitted.kconfig = true;
+  const errs = validateAll(); ok("validateAll clean", errs.length === 0);
+  state.compiled = true; ok("compile unlocks 7", maxStep() === 7);
+  state.flashed = true; ok("flash unlocks 8", maxStep() === 8);
+  const p = parseParams(C_CODE); ok("parse params", !!p && p.low === 20000 && p.high === 10000);
+  const v = valuesFrom(p || {low:20000,high:10000});
+  ok("frequency ~1066.7", Math.abs(v.freq - 1066.6667) < 1);
+  ok("duty ~33.3", Math.abs(v.duty - 1/3) < 0.001);
+  out.textContent = "WS63 BEEP LAB SELFTEST\n" + results.join("\n") + "\n" + (results.every(r=>r.startsWith("PASS")) ? "SELFTEST PASS" : "SELFTEST FAIL");
+  save();
+}
+(function init(){
+  const params = new URLSearchParams(location.search);
+  if(params.get("selftest") === "1"){ runSelfTest(); render(); return; }
+  if(params.has("preview")){ setPreview(params.get("preview")); return; }
+  render();
+  if(!state.log.length){ log("WS63E 交互实验室就绪。点击“开始实训”进入步骤 1。", "dim"); }
+})();
+
+$("#btnHelp").addEventListener("click", showHelp);
+$("#btnReset").addEventListener("click", resetAll);
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
+</script>
+</body>
+</html>
